@@ -1,0 +1,51 @@
+.counter {
+  text-align: center;
+  max-width: 1200px;
+  width: 90%;
+  margin: 0 auto;
+}
+
+.counter-display {
+  font-size: 2rem;
+  color: #2c3e50;
+}
+
+.counter-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+}
+
+.counter-buttons button {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.counter-buttons .counter-decrement {
+  background-color: #e74c3c; /* Red for counter-decrement */
+}
+
+.counter-buttons .counter-reset {
+  background-color: #2c12f3; /* Blue for reset */
+}
+
+.counter-buttons .counter-increment {
+  background-color: #2ecc71; /* Green for increment */
+}
+
+.counter-buttons .counter-decrement :hover {
+  background-color: #c0392b;
+}
+
+.counter-buttons .counter-reset:hover {
+  background-color: #3702bd;
+}
+
+.counter-buttons .counter-increment :hover {
+  background-color: #27ae60;
+}
