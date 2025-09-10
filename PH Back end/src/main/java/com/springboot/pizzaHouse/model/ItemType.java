@@ -35,8 +35,9 @@ public class ItemType {
     @Column(name = "item_type_name", nullable = false, length = 45)
     private String itemTypeName;
 
-    @Column(name = "Item_type_description", length = 255)
+    @Column(name = "item_type_description", length = 255)
     private String itemTypeDescription;
+
 
     @OneToMany(mappedBy = "itemType")
     @JsonIgnore  // prevents recursion

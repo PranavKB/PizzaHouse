@@ -3,7 +3,7 @@ import type { ItemDTO, OfferDTO } from '../types/interfaces';
 import { useNavigate } from 'react-router-dom';
 import { LogoutButton } from './LogoutButton';
 import ItemOfferTableModal from './offers/ItemOfferTableModal';
-import MapItemOfferModal from './offers/MapItemOfferModal';
+import MapItemOfferModal from './admin/MapItemOfferModal';
 import UserTypesTableModal from './admin/UserTypesTableModal';
 import AddOffer from './offers/AddOffer';
 

@@ -1,5 +1,6 @@
 
 
+import showNotification from "../components/Notification/showNotification";
 import axiosInstance from "./axiosInstance";
 
 const storedEmail = localStorage.getItem('email');
@@ -49,7 +50,7 @@ export const confirmOrderCall = async (orderId: number): Promise<any> => {
       headers,
       withCredentials: true,
     });
-
+    showNotification.success("Order confirmed successfully!");
     return response.data;
   } catch (error: any) {
     console.error("Error confirming order:", error.response?.data || error.message);

@@ -19,9 +19,9 @@ export const LogoutButton = ({ setIsAuthenticated }: { setIsAuthenticated: (auth
         };
 
   return (
-  <div>
-  <button className="logout-button" onClick={handleLogout}>
-                            Logout
-        </button>
+  <div className="logout-info">
+    <button className="logout-button" onClick={handleLogout}>
+                              Logout
+          </button>
   </div>);
 };

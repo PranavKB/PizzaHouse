@@ -28,7 +28,7 @@ export interface Item extends ItemInfo {
 }
 
 export interface ItemDTO extends ItemInfo {
-  offers?: OfferDTO[];
+  offers: OfferDTO[];
 }
 
 export interface UserType {
@@ -63,4 +63,10 @@ export interface OfferDTO{
   offerText: string;
   validFrom: string;
   validTo: string;
+}
+
+export interface ItemTypeProps {
+  itemTypeId: number;
+  itemTypeName: string;
+  itemTypeDescription?: string;
 }

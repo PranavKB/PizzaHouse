@@ -23,7 +23,7 @@ const App: React.FC = () => {
 
   const reDirectTo = () => {
     if (role === 'Admin') {
-      return <Navigate to="/offers" />;
+      return <Navigate to="/item-list" />;
     }
     return <Navigate to="/menu" />;
   };

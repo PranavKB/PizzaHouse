@@ -1,0 +1,139 @@
+.form-container {
+  // padding: 24px;
+  // max-width: 700px;
+  // margin: 0 auto;
+  // background-color: #fff;
+  // border-radius: 10px;
+  // box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
+
+  h2 {
+    text-align: center;
+    margin-bottom: 24px;
+    font-size: 24px;
+    font-weight: bold;
+  }
+
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .form-group {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 20px;
+
+    label {
+      width: 150px;
+      font-weight: 600;
+      padding-top: 8px;
+    }
+
+    input,
+    textarea,
+    select {
+      flex: 1;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 30px;
+      width: 100%;
+    }
+
+    input [type="text"] {
+      width: 300px;
+    }
+
+    .form-input{
+      width: 300px;
+    }
+
+    .error {
+      color: red;
+      font-size: 0.85rem;
+      margin-top: 4px;
+      margin-left: 150px;
+    }
+
+    .image-preview {
+      margin-top: 10px;
+      img {
+        width: 150px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+    }
+  }
+
+  .radio-group {
+    
+
+    .radio-label {
+      width: 100px;
+      font-weight: 600;
+    }
+
+    .radio-options {
+      display: flex;
+      gap: 30px;
+
+      .option {
+        display: flex;
+        align-items: center;
+
+        input[type="radio"] {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  .button-group {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+
+    .submit-btn,
+    .cancel-btn {
+      padding: 10px 18px;
+      font-size: 14px;
+      border-radius: 6px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .submit-btn {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .cancel-btn {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .submit-btn:hover {
+      background-color: #218838;
+    }
+
+    .cancel-btn:hover {
+      background-color: #c82333;
+    }
+  }
+}
+
+.modal-backdrop{
+  
+  .modal-content {
+    max-width: 800px;
+  }
+}

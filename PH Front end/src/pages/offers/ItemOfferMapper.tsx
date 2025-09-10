@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import type { Item, MenuProps, Offer } from '../../types/interfaces';
-import { getItems } from '../../services/itemService';
-import { getOffers } from '../../services/offerService';
+import type { Item, MenuProps, OfferDTO } from '../../types/interfaces';
+import { getItemsDTO } from '../../services/itemService';
+import { getOffersDTO } from '../../services/offerService';
 
 const ItemOfferMapper: React.FC<MenuProps> = () => {
   const [items, setItems] = useState<Item[]>([]);
-  const [offers, setOffers] = useState<Offer[]>([]);
+  const [offers, setOffers] = useState<OfferDTO[]>([]);
   const [selectedItemId, setSelectedItemId] = useState<number | null>(null);
   const [selectedOfferIds, setSelectedOfferIds] = useState<number[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await getItems();
+      const data = await getItemsDTO();
       setItems(data);
-      const offerData = await getOffers();
+      const offerData = await getOffersDTO();
       setOffers(offerData);
     };
     fetchData();
@@ -67,14 +67,14 @@ const ItemOfferMapper: React.FC<MenuProps> = () => {
         <label>Select Offers:</label>
         <div>
           {offers.map(offer => (
-            <div key={offer.offerId}>
+            <div key={offer.id}>
               <input
                 type="checkbox"
-                id={`offer-${offer.offerId}`}
-                checked={selectedOfferIds.includes(offer.offerId)}
-                onChange={() => handleOfferChange(offer.offerId)}
+                id={`offer-${offer.id}`}
+                checked={selectedOfferIds.includes(offer.id)}
+                onChange={() => handleOfferChange(offer.id)}
               />
-              <label htmlFor={`offer-${offer.offerId}`}>
+              <label htmlFor={`offer-${offer.id}`}>
                 {offer.offerText}
               </label>
             </div>

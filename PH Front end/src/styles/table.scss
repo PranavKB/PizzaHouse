@@ -4,6 +4,8 @@
   display: flex;
   flex-direction: column;
   font-family: sans-serif;
+  overflow-y: auto;
+  max-height: 1100px;
 
   .table-list-header {
     display: flex;
@@ -37,6 +39,12 @@
     .table-cell {
       flex: 1;
       word-break: break-word;
+    }
+    
+    .link-cell {
+      color: #007bff;
+      text-decoration: underline;
+      cursor: pointer;
     }
   }
 }

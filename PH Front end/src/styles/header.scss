@@ -27,7 +27,7 @@
       align-items: center;
       flex-wrap: wrap;
       width: 100%;
-      max-width: 1000px;
+      // max-width: 1000px;
       position: relative;
 
       .header-info {
@@ -49,6 +49,11 @@
         }
       }
 
+      .logout-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+
       .logout-button {
         position: absolute;
         right: 0;
@@ -64,6 +69,7 @@
           background-color: #a93226;
         }
       }
+    }
     }
   }
 
