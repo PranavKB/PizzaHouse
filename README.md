@@ -1,5 +1,4 @@
 # PizzaHouse
-# Pizza House
 
 A full-stack web application for managing a pizza restaurant ordering system with user authentication, menu management, and order processing capabilities.
 
@@ -79,8 +78,8 @@ npm run dev
 Frontend will start on `http://localhost:5173`
 
 ## Default Admin Credentials
-- Username: admin
-- Password: admin123
+- Username: admin@pizzahouse.com
+- Password: Admin@123
 
 ## Contributing
 
