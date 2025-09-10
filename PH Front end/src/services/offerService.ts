@@ -3,17 +3,6 @@ import type { Offer, OfferDTO } from "../types/interfaces";
 import axiosInstance from "./axiosInstance";
 
 
-export const getOffers = async (): Promise<Offer[]> => {
-  try {
-    const response = await axiosInstance.get<Offer[]>('/offers/current');
-    return response.data;
-  } catch (error) {
-    console.error('Failed to fetch offers:', error);
-    showNotification.error('Failed to load offers');
-    return [];
-  }
-};
-
 export const getOffersDTO = async (): Promise<OfferDTO[]> => {
   try {
     const response = await axiosInstance.get<OfferDTO[]>('/offers/current');

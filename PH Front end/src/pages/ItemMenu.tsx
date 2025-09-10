@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { getItemsDTO } from '../services/itemService';
+import { getImage, getItemsDTO } from '../services/itemService';
 import { clearCartApi, getUserCart, placeOrder } from '../services/orderService';
 import { useNavigate } from 'react-router-dom';
 import { useCart, type CartItem } from '../context/CartContext';
@@ -8,6 +8,7 @@ import Counter from '../components/Counter/Counter';
 import '../styles/itemMenu.scss';
 import type { ItemDTO, MenuProps } from '../types/interfaces';
 import { LogoutButton } from './LogoutButton';
+import ImageFromBlob from './ImageFromBlob';
 
 const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
   const [items, setItems] = useState<ItemDTO[]>([]);
@@ -16,6 +17,10 @@ const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
   const [loading, setLoading] = useState(true);
 
   const [filter, setFilter] = useState<'ALL' | 'VEG' | 'NON_VEG'>('ALL');
+
+  const isBackendImage = (path: string): boolean => path.startsWith("image/view/");
+  const isStaticImage = (path: string): boolean => path.startsWith("images/"); // from public/
+
 
   const navigate = useNavigate();
   const {
@@ -68,36 +73,36 @@ const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
     setVisibleCounters(counters);
   }, [cart]);
 
-const fetchCart = async () => {
-  try {
-    const data = await getUserCart(); // example: { "1": 2, "3": 1 }
+  const fetchCart = async () => {
+    try {
+      const data = await getUserCart(); // example: { "1": 2, "3": 1 }
 
-    setQuantities(data);
-    setVisibleCounters(new Set(Object.keys(data).map((id) => parseInt(id))));
-    initialCartQuantitiesRef.current = data;
+      setQuantities(data);
+      setVisibleCounters(new Set(Object.keys(data).map((id) => parseInt(id))));
+      initialCartQuantitiesRef.current = data;
 
-    //   cart
-    const updatedCart = Object.entries(data).map(([itemIdStr, quantity]) => {
-      const itemId = parseInt(itemIdStr);
-      const item = items.find((i) => i.itemId === itemId);
+      //   cart
+      const updatedCart = Object.entries(data).map(([itemIdStr, quantity]) => {
+        const itemId = parseInt(itemIdStr);
+        const item = items.find((i) => i.itemId === itemId);
 
-      if (!item) {
-        console.warn(`Item with ID ${itemId} not found in 'items' list.`);
-        return null;
-      }
+        if (!item) {
+          console.warn(`Item with ID ${itemId} not found in 'items' list.`);
+          return null;
+        }
 
-      return {
-        ...item,
-        quantity: Number(quantity),
-      };
-    }).filter((item): item is CartItem => item !== null); // type guard
+        return {
+          ...item,
+          quantity: Number(quantity),
+        };
+      }).filter((item): item is CartItem => item !== null); // type guard
 
-    setCart(updatedCart);
-  } catch (err) {
-    showNotification.error('Failed to load cart.');
-    console.error(err);
-  }
-};
+      setCart(updatedCart);
+    } catch (err) {
+      showNotification.error('Failed to load cart.');
+      console.error(err);
+    }
+  };
 
 
 
@@ -292,10 +297,14 @@ const fetchCart = async () => {
 
               return (
                 <div className="item-card" key={item.itemId}>
-                  <img
-                    src={item.imageUrl}
-                    alt={item.itemName || 'Pizza item'}
-                  />
+                  {isBackendImage(item.imageUrl) ? (
+                  <ImageFromBlob imagePath={item.imageUrl} alt={item.itemName} />
+                    ) : isStaticImage(item.imageUrl) ? (
+                      <img src={`src/assets/${item.imageUrl}`} alt={item.itemName} />
+                    ) : (
+                      <img src="/images/fallback.jpg" alt="No Image" />
+                    )}
+
 
                   {activeOfferItems.length > 0 && (
                     <div className="offer-tags">

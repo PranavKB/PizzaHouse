@@ -2,9 +2,11 @@ import React, { useMemo } from 'react';
 import { useCart } from '../context/CartContext';
 import '../styles/checkOut.scss';
 import { confirmOrderCall } from '../services/orderService';
+import { useNavigate } from 'react-router-dom';
 
 const CheckoutPage: React.FC = () => {
   const { cart, isOfferActiveFn, applyAllActiveOffers, cartOrderId } = useCart();
+  const navigate = useNavigate();
 
 
 const { totalPrice, totalDiscount } = useMemo(() => {
@@ -22,6 +24,7 @@ const { totalPrice, totalDiscount } = useMemo(() => {
 const confirmOrder = () => {
   if(cartOrderId > 0) {
     confirmOrderCall(cartOrderId);
+    navigate('/menu')
   }
 };
 
