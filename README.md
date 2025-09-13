@@ -1,85 +1,69 @@
 # PizzaHouse
 
-A full-stack web application for managing a pizza restaurant ordering system with user authentication, menu management, and order processing capabilities.
+A full-stack web application for managing a pizza restaurant ordering system with user authentication, menu management, order processing, and more.
 
 ## Project Structure
 
 ```
 PizzaHouse/
-├── PH Back end/     # Spring Boot backend
-├── PH Front end/    # React + TypeScript frontend
+├── PH Back end/     # Spring Boot backend (see [README](./PH%20Back%20end/README.md))
+├── PH Front end/    # React + TypeScript frontend (see [README](./PH%20Front%20end/README.md))
 ```
 
 ## Technologies Used
 
-### Backend
-- Java 17
-- Spring Boot 3.1.0
-- Spring Security
-- Spring Data JPA
-- MySQL
-- Maven
-- Lombok
-
-### Frontend
-- React
-- TypeScript
-- Vite
-- React Router
-- SCSS
-- React Toastify
+**Backend:** Java 17+, Spring Boot 3, Spring Security, Spring Data JPA, MySQL, Maven, Lombok  
+**Frontend:** React, TypeScript, Vite, React Router, SCSS, React Toastify
 
 ## Features
 
-- User Authentication & Authorization
+- User Authentication & Authorization (JWT)
 - Role-based Access Control (Admin/Customer)
-- Menu Management
-- Order Processing
-- Shopping Cart Functionality
-- Offer Management System
-- User Profile Management
-- Previous Orders History
+- Menu & Offer Management
+- Order & Shopping Cart Processing
+- User Profile & Previous Orders History
 - Item-Offer Mapping
+- File Uploads (images)
+- Responsive UI
+- API Documentation (Swagger)
 
-## Prerequisites
+## Quick Start
 
-### Backend
-- JDK 17 or later
-- MySQL 8.0 or later
-- Maven 3.6 or later
-
-### Frontend
-- Node.js
-- npm or yarn
-
-## Setup Instructions
-
-### Backend Setup
-1. Navigate to `PH Back end` directory
-2. Create MySQL database named 'pizzahouse'
-3. Configure database credentials in `application.properties`
-4. Run:
 ```bash
-mvn clean install
+# Backend
+cd "PH Back end"
+cp .env.example .env        # Fill in DB and secrets
 mvn spring-boot:run
-```
-Backend will start on `http://localhost:8080`
 
-### Frontend Setup
-1. Navigate to `PH Front end` directory
-2. Install dependencies:
-```bash
+# Frontend
+cd "../PH Front end"
 npm install
-```
-3. Start development server:
-```bash
 npm run dev
 ```
-Frontend will start on `http://localhost:5173`
+
+- Backend runs at `http://localhost:8080`
+- Frontend runs at `http://localhost:5173`
+
+## Environment Variables
+
+- See `.env.example` in both backend and frontend for required configuration.
+- Database, JWT secret, upload directory, etc.
+
+## Database
+
+- Create MySQL database named `pizzahouse`
+- Import schema from `PH Back end/pizzahouse_20250615.sql`
+- Configure credentials in `PH Back end/src/main/resources/application.properties` or `.env`
+
+## API Documentation
+
+- Swagger UI available at `http://localhost:8080/swagger-ui.html` (if enabled)
 
 ## Default Admin Credentials
-- Username: admin@pizzahouse.com
-- Password: Admin@123
+
+- Username: `admin@pizzahouse.com`
+- Password: `Admin@123`
+
 
 ## Contributing
 
@@ -87,8 +71,11 @@ Frontend will start on `http://localhost:5173`
 2. Create a feature branch
 3. Commit your changes
 4. Push to the branch
-5. Create a Pull Request
+5. Open a Pull Request
 
-## License
 
-This project is licensed under the MIT License.
+---
+
+See the sub-project READMEs for full setup and advanced usage:
+- [Backend README](./PH%20Back%20end/README.md)
+- [Frontend README](./PH%20Front%20end/README.md)
