@@ -28,6 +28,17 @@ public class SecurityConfig {
     @Autowired
     private CustomUserDetailsService userDetailsService; 
 
+    private static final String[] PUBLIC_URLS = {
+        SecurityConstants.LOGIN_URL,
+        SecurityConstants.SIGN_UP_URL,
+        SecurityConstants.FORGOT_PASSWORD_URL,
+        SecurityConstants.RESET_PASSWORD_URL,
+        // Swagger/OpenAPI
+        "/v3/api-docs/**",
+        "/swagger-ui/**",
+        "/swagger-ui.html"
+    };
+
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -35,7 +46,7 @@ public class SecurityConfig {
             .cors(Customizer.withDefaults())
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(SecurityConstants.LOGIN_URL, SecurityConstants.SIGN_UP_URL, SecurityConstants.FORGOT_PASSWORD_URL, SecurityConstants.RESET_PASSWORD_URL).permitAll()
+                .requestMatchers(PUBLIC_URLS).permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(sess -> sess
