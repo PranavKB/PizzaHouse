@@ -64,6 +64,19 @@ npm run dev
 - Username: `admin@pizzahouse.com`
 - Password: `Admin@123`
 
+## Possible Improvements / Future Enhancements
+
+The current implementation is functional to keep things simple for MVP(minimum viable product) of online pizza ordering system, but the following improvements could be added in future versions:
+
+- **Multiple Addresses per User**: Currently, each user can store only one address. This can be improved by allowing users to manage multiple addresses (e.g., Home, Work) via a One-to-Many relationship.
+- **Order from History**: Now user can view their past orders but cannot reorder.
+- **Payment Integration**: Add support for real payment gateways (e.g., Razorpay, Stripe).
+- **Admin Panel**: Now Admin can add item to menu, time bound offers to item. A dashboard for admins to manage users, orders.
+- **Product Customization**: Allow users to customize pizzas (extra cheese, toppings, etc.).
+- **User Authentication Enhancements**: Now using JWT. Can add OAuth login options (Google, Facebook) for convenience.
+
+These are not yet implemented to keep the initial version simple and focused.
+
 
 ## Contributing
 
