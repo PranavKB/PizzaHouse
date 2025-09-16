@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
 
     private UserDTO mapToDTO(User user) {
         UserType userType = userTypeRepository.findById(user.getUserType().getId())
-                .orElseThrow(() -> new RuntimeException("Invalid user type"));
+                .orElseThrow(() -> new InvalidUserTypeException("UserServiceImpl.mapToDTO: Invalid user type"));
         return new UserDTO( user.getEmail(), user.getName(), user.getUserName(), userType.getName());
     }
 
@@ -57,10 +57,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDTO getUserByEmail(String email) {
-        logger.info("Fetching user by email: {}", email);
         return userRepository.findByEmail(email)
             .map(this::mapToDTO)
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
+            .orElseThrow(() -> new UserNotFoundException("UserServiceImpl.getUserByEmail: User not found"));
 
     }
 
@@ -70,13 +69,6 @@ public class UserServiceImpl implements UserService {
         return userRepository.findByEmail(email)
             .orElseThrow(() -> new UserNotFoundException("User not found"));
 
-    }
-
-    @Override
-    public UserDTO getUserById(String userId) {
-        return userRepository.findById(userId)
-            .map(this::mapToDTO)
-            .orElseThrow(() -> new UserNotFoundException("User not found"));
     }
 
     @Override
@@ -114,9 +106,9 @@ public class UserServiceImpl implements UserService {
      */
 
     @Override
-    public UserDTO registerUser(UserRequest req) throws UserAlreadyExistsException {
+    public UserDTO registerUser(UserRequest req) throws UserAlreadyExistsException, InvalidUserTypeException {
         if (userRepository.existsByEmail(req.getEmail())) {
-            throw new UserAlreadyExistsException("Email already registered.");
+            throw new UserAlreadyExistsException("registerUser: Email already registered.");
         }
 
         User user = new User();
@@ -131,12 +123,12 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encoder.encode(req.getPassword()));
 
         UserType userType = userTypeRepository.findById(req.getUserTypeId())
-                .orElseThrow(() -> new InvalidUserTypeException("Invalid user type."));
+                .orElseThrow(() -> new InvalidUserTypeException("registerUser: Invalid user type."));
         user.setUserType(userType);
 
         userRepository.save(user);
 
-        return new UserDTO(user); // Assumes constructor exists
+        return new UserDTO(user); 
     }
 
     @Override

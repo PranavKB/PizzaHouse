@@ -7,7 +7,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
@@ -185,7 +184,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             Order savedOrder = orderRepository.save(order);
 			if(savedOrder != null) {
-				orderId = order.getOrderId();
+				orderId = order.getOrderId() != 0 ? order.getOrderId() : savedOrder.getOrderId();
 				logger.info("Order saved successfully with ID: {}", orderId);
 			}
 			orderRepository.flush();

@@ -3,8 +3,10 @@ package com.springboot.pizzaHouse.extras;
 import java.util.List;
 
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
+@NoArgsConstructor
 public class OfferCalculationResult {
     private int finalTotal; // after discount
     private List<AppliedOffer> appliedOffers;

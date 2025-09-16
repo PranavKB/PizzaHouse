@@ -3,7 +3,6 @@ package com.springboot.pizzaHouse.services;
 import java.util.List;
 
 import com.springboot.pizzaHouse.dto.UserDTO;
-import com.springboot.pizzaHouse.model.PasswordResetToken;
 import com.springboot.pizzaHouse.model.User;
 import com.springboot.pizzaHouse.model.UserType;
 import com.springboot.pizzaHouse.model.request.UserRequest;
@@ -19,7 +18,6 @@ public interface UserService {
     List<UserDTO> getAllUsers();
     UserDTO registerUser(UserRequest req) throws Exception;
     List<UserType> getAllUserTypesList();
-    UserDTO getUserById(String id);
 
     String getEmailFromRequest(HttpServletRequest request);
 

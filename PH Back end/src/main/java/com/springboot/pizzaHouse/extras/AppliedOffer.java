@@ -1,8 +1,10 @@
 package com.springboot.pizzaHouse.extras;
 
 import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
+@NoArgsConstructor
 public class AppliedOffer {
     private long offerId;
     private int discountAmount;
