@@ -3,6 +3,7 @@ package com.springboot.pizzaHouse.services;
 import java.util.List;
 import java.util.Map;
 
+import com.springboot.pizzaHouse.dto.OrderDTO;
 import com.springboot.pizzaHouse.model.Order;
 import com.springboot.pizzaHouse.model.OrderItem;
 import com.springboot.pizzaHouse.model.OrderStatus;
@@ -11,7 +12,7 @@ public interface OrderService {
     
      List<Order> getAllOrders();
 
-	 List<OrderItem> saveOrder(Map<Integer, Integer> orderList, Integer orderStatus, String email);
+	 OrderDTO saveOrder(Map<Integer, Integer> orderList, Integer orderStatus, String email);
 
     List<OrderItem> getOrderItems();
 

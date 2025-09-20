@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+</head>
+<body style="font-family: Arial, sans-serif; margin: 0; padding: 20px; background-color: #ffffff;">
+    <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+        <div style="text-align: center; margin-bottom: 30px;">
+            <h1 style="color: #e31837; margin: 0;">Pizza House</h1>
+        </div>
+
+        <div style="background-color: #f9f9f9; padding: 20px; border-radius: 5px;">
+            <h2 style="color: #333333; margin-top: 0;">Order Confirmation</h2>
+            <p style="color: #333;">Hi <span th:text="${userName}">Customer</span>,</p>
+            <p style="color: #333;">Thanks for your order! We’re preparing it fresh and hot for you. Below are your order details:</p>
+
+            <h3 style="color: #e31837;">Order Summary</h3>
+            <p><strong>Order ID:</strong> <span th:text="${orderId}">#123456</span></p>
+            <p><strong>Order Date:</strong> <span th:text="${orderDate}">Sep 20, 2025</span></p>
+
+            <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
+                <thead>
+                    <tr>
+                        <th style="border-bottom: 1px solid #ddd; padding: 8px; text-align: left;">Item</th>
+                        <th style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">Quantity</th>
+                        <th style="border-bottom: 1px solid #ddd; padding: 8px; text-align: right;">Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${orderItems}">
+                        <td style="padding: 8px;" th:text="${item.itemName}">Pizza Margherita</td>
+                        <td style="padding: 8px; text-align: right;" th:text="${item.quantity}">1</td>
+                        <td style="padding: 8px; text-align: right;" th:text="${item.price}">$10.99</td>
+                    </tr>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="2" style="padding: 8px; font-weight: bold; text-align: right;">Total:</td>
+                        <td style="padding: 8px; font-weight: bold; text-align: right;" th:text="${orderTotal}">$21.98</td>
+                    </tr>
+                </tfoot>
+            </table>
+
+            <h3 style="margin-top: 30px; color: #333333;">Delivery Details</h3>
+            <p><strong>Delivery Address:</strong></p>
+            <p style="color: #333;" th:text="${deliveryAddress}">123 Pizza Street, New York, NY</p>
+
+            <p style="color: #333;"><strong>Estimated Delivery Time:</strong> <span th:text="${estimatedTime}">30-45 minutes</span></p>
+            <p style="color: #333;">We’ll notify you once your order is out for delivery. Thanks again for choosing Pizza House!</p>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px; color: #666; font-size: 0.8em;">
+            <p>Need help with your order? Contact us at <span th:text="${supportEmail}">support@pizzahouse.com</span></p>
+            <p>&copy; 2025 Pizza House. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

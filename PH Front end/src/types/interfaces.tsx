@@ -1,9 +1,9 @@
 export interface LoginPageProps {
-  setIsAuthenticated: (value: boolean) => void;
+  
 }
 
 export interface MenuProps {
-  setIsAuthenticated: (value: boolean) => void;
+  
 }
 
 export interface CounterProps {

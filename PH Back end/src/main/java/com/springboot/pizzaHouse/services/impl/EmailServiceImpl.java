@@ -1,5 +1,7 @@
 package com.springboot.pizzaHouse.services.impl;
 
+import java.util.List;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +12,8 @@ import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 
+import com.springboot.pizzaHouse.model.Order;
+import com.springboot.pizzaHouse.model.OrderItem;
 import com.springboot.pizzaHouse.services.EmailService;
 
 import jakarta.mail.MessagingException;
@@ -54,6 +58,7 @@ public class EmailServiceImpl implements EmailService {
         try {
             Context context = new Context();
             context.setVariable("name", name);
+            context.setVariable("loginLink", frontendUrl + "/login");
             context.setVariable("supportEmail", fromEmail);
 
             String emailContent = templateEngine.process("welcome", context);
@@ -81,6 +86,30 @@ public class EmailServiceImpl implements EmailService {
             logger.error("Failed to send order confirmation email to {}: {}", toEmail, e.getMessage());
         }
     }
+
+    @Async
+    @Override
+    public void sendOrderConfirmationEmail(String toEmail, Order order, List<OrderItem> orderItems) {
+        try {
+            Context context = new Context();
+            context.setVariable("userName", order.getCustomerName());
+            context.setVariable("orderId", order.getOrderId());
+            context.setVariable("orderDate", order.getOrderTimeStamp());
+            context.setVariable("orderItems", orderItems);
+            context.setVariable("orderTotal", order.getOrderTotal());
+            context.setVariable("deliveryAddress", order.getOrderAddress());
+            context.setVariable("estimatedTime", "45-60 minutes"); // Example static value
+            context.setVariable("supportEmail", fromEmail); // Assuming fromEmail is injected as sender
+
+            String emailContent = templateEngine.process("order-confirmation", context);
+            sendHtmlEmail(toEmail, "Your Pizza House Order Confirmation", emailContent);
+
+            logger.info("Order confirmation email sent to: {}", toEmail);
+        } catch (Exception e) {
+            logger.error("Failed to send order confirmation email to {}: {}", toEmail, e.getMessage());
+        }
+    }
+
 
     private void sendHtmlEmail(String to, String subject, String htmlContent) throws MessagingException {
         MimeMessage message = mailSender.createMimeMessage();

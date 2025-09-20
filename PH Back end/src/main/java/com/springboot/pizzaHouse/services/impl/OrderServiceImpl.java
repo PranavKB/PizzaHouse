@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.springboot.pizzaHouse.dto.OrderDTO;
 import com.springboot.pizzaHouse.extras.AppliedOffer;
 import com.springboot.pizzaHouse.extras.OfferCalculationResult;
 import com.springboot.pizzaHouse.model.Item;
@@ -26,6 +27,7 @@ import com.springboot.pizzaHouse.repository.OrderItemOfferRepository;
 import com.springboot.pizzaHouse.repository.OrderItemRepository;
 import com.springboot.pizzaHouse.repository.OrderRepository;
 import com.springboot.pizzaHouse.repository.OrderStatusRepository;
+import com.springboot.pizzaHouse.services.EmailService;
 import com.springboot.pizzaHouse.services.ItemService;
 import com.springboot.pizzaHouse.services.OffersService;
 import com.springboot.pizzaHouse.services.OrderService;
@@ -50,6 +52,7 @@ public class OrderServiceImpl implements OrderService {
 	private final OrderItemOfferRepository orderItemOfferRepository;
 	private final OffersService offerService;
 	private final OrderStatusRepository orderStatusRepository;
+	private final EmailService emailService;
 
 	@Override
     public List<Order> getAllOrders(){
@@ -58,7 +61,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
 	@Override
-	public List<OrderItem> saveOrder(Map<Integer, Integer> orderList, Integer orderStatusId, String email) {
+	public OrderDTO saveOrder(Map<Integer, Integer> orderList, Integer orderStatusId, String email) {
 		logger.info("Inside saveOrder...");
 
 		List<OrderItem> updatedOrderItems = new ArrayList<>();
@@ -79,7 +82,7 @@ public class OrderServiceImpl implements OrderService {
 		int orderId = (order.getOrderId() != 0) ? order.getOrderId() : setOrderToDB(order);
 		if (orderId == 0) {
 			logger.error("Failed to save order");
-			return Collections.emptyList();
+			return new OrderDTO(Collections.emptyList(), 0);
 		}
 
 		// Map existing OrderItems by itemId for lookup
@@ -152,8 +155,11 @@ public class OrderServiceImpl implements OrderService {
 		order.setOrderTotal(BigDecimal.valueOf(total));
 		order.setOrderId(orderId);
 		setOrderTotalToDB(order, orderId);
+		//order.setOrderItems(updatedOrderItems);
 
-		return updatedOrderItems;
+		logger.info("Order saved/updated successfully with ID: {}", orderId);
+
+		return new OrderDTO(order);
 	}
 
 
@@ -236,6 +242,8 @@ public class OrderServiceImpl implements OrderService {
         if (optionalOrder != null) {
             optionalOrder.setOrderStatusId(4); // 4 - order accepted
             orderRepository.save(optionalOrder);
+
+			emailService.sendOrderConfirmationEmail(optionalOrder.getOrderEmailId(), optionalOrder, optionalOrder.getOrderItems());
             return true;
         }
         return false;

@@ -51,5 +51,9 @@ public class OrderDTO {
                 .collect(Collectors.toList());
     }
 
+    public OrderDTO(List<OrderItemDTO> orderItems, int orderId) {
+        this.orderItems = orderItems;
+        this.orderId = orderId;
+    }
 
 }

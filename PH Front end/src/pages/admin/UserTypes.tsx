@@ -5,14 +5,16 @@ import { getUserTypes } from "../../services/itemService";
 import type { MenuProps, UserType } from "../../types/interfaces";
 import { useNavigate } from 'react-router-dom';
 import { LogoutButton } from "../LogoutButton";
+import { useItemsContext } from "../../context/ItemsContext";
 
-const UserTypes: React.FC<MenuProps> = ({setIsAuthenticated}) => {
-    const [loading, setLoading] = useState<boolean>(true);
+const UserTypes: React.FC<MenuProps> = () => {
     const [userTypes, setUserTypes] = useState<UserType[]>([]);
     const navigate = useNavigate();
+    const { setLoading } = useItemsContext();
   useEffect(() => {
       const fetchUserTypes = async () => {
         try {
+          setLoading(true);
           const response = await getUserTypes();
           setUserTypes(response);
         } catch (err: any) {
@@ -32,9 +34,7 @@ const UserTypes: React.FC<MenuProps> = ({setIsAuthenticated}) => {
 
   return (
         <div className="header-class">
-            {loading ? (
-            <p>Loading...</p>
-            ) : (
+            
                 <>
                     <div className="sticky-header">
                         <h1>User Types</h1>
@@ -43,7 +43,7 @@ const UserTypes: React.FC<MenuProps> = ({setIsAuthenticated}) => {
                             <div className="header-info">
                                 <button onClick={redirectToOffers}>Offers</button>
                             </div>
-                            <LogoutButton setIsAuthenticated={setIsAuthenticated} />
+                            <LogoutButton />
                         </div>
                     </div>
                     <div className="table-list-container">
@@ -59,7 +59,7 @@ const UserTypes: React.FC<MenuProps> = ({setIsAuthenticated}) => {
                       ))}
                     </div>
                 </>
-            )}
+            
 
             
         </div>

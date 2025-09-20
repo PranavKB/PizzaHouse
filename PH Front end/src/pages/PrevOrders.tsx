@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/PrevOrders.scss';
 import { getOrderHistory } from '../services/orderService';
+import { useItemsContext } from '../context/ItemsContext';
 
 interface OrderItem {
   itemId: number;
@@ -43,7 +44,7 @@ interface Order {
 
 const PrevOrders: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { setLoading } = useItemsContext();
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const navigate = useNavigate();
 
@@ -53,8 +54,10 @@ const PrevOrders: React.FC = () => {
 
   const fetchOrders = async () => {
     try {
+      setLoading(true);
       const response = await getOrderHistory();
       setOrders(response);
+      setLoading(false);
     } catch (error) {
       console.error('Failed to fetch orders:', error);
     } finally {
@@ -141,9 +144,9 @@ const PrevOrders: React.FC = () => {
     navigate('/menu');
   };
 
-  if (loading) {
-    return <div className="loading">Loading your orders...</div>;
-  }
+  // if (loading) {
+  //   return <div className="loading">Loading your orders...</div>;
+  // }
 
   return (
     <div className="prev-orders-container">

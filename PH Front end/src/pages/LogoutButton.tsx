@@ -1,9 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { logoutUser } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
 
-export const LogoutButton = ({ setIsAuthenticated }: { setIsAuthenticated: (auth: boolean) => void }) => {
+export const LogoutButton = () => {
     
     const navigate = useNavigate();
+    const { setIsAuthenticated } = useAuth();
   const handleLogout = async () => {
           try {
             await logoutUser();

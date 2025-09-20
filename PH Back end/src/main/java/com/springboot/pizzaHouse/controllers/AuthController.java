@@ -104,6 +104,7 @@ public class AuthController {
         try {
             UserDTO createdUser = userService.registerUser(userRequest);
             logger.info("User registered successfully: {}", createdUser.getEmail());
+            emailService.sendWelcomeEmail(createdUser.getEmail(), createdUser.getName());
             return ResponseEntity.status(HttpStatus.CREATED).body(createdUser.getEmail());
         } catch (Exception e) {
             logger.error("Registration failed for email {}: {}", email, e.getMessage(), e);
