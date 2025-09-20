@@ -1,0 +1,60 @@
+.counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+
+  .counter-display {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .counter-buttons {
+    display: flex;
+    gap: 0.5rem;
+
+    button {
+      padding: 0.4rem 0.8rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+
+      &.counter-increment {
+        background-color: #2ecc71; // Green
+        color: white;
+
+        &:hover {
+          background-color: #27ae60;
+        }
+      }
+
+      &.counter-decrement {
+        background-color: #e74c3c; // Red
+        color: white;
+
+        &:disabled {
+          background-color: #f5b7b1;
+          cursor: not-allowed;
+        }
+
+        &:hover:not(:disabled) {
+          background-color: #c0392b;
+        }
+      }
+
+      &.counter-reset {
+        background-color: #f39c12; // Yellow/Orange
+        color: white;
+
+        &:hover {
+          background-color: #e67e22;
+        }
+      }
+    }
+  }
+}

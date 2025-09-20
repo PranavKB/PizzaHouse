@@ -3,14 +3,16 @@ import styles from './Login.module.scss';
 import { loginUser } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import type { LoginPageProps } from '../../types/interfaces';
+import { useAuth } from '../../context/AuthContext';
 
 
-const Login: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
+const Login: React.FC<LoginPageProps> = () => {
   const navigate = useNavigate(); //  Add this
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { setIsAuthenticated, setUser } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,11 +23,13 @@ const Login: React.FC<LoginPageProps> = ({ setIsAuthenticated }) => {
       const response = await loginUser({ email, password });
       localStorage.setItem('token', response.token);
       localStorage.setItem('role', response.user.role);
-      setIsAuthenticated(true); 
-      if(response.user.role == 'Customer'){
+      localStorage.setItem('user', JSON.stringify(response.user));
+      setUser(response.user);
+      setIsAuthenticated(true);
+      if (response.user.role == 'Customer') {
         navigate('/menu');
-      }else{
-        navigate('/userTypes');
+      } else {
+        navigate('/item-list');
       }
     } catch (err: any) {
       setError(err.response?.data?.message || 'Login failed');

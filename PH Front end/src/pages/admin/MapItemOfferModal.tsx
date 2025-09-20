@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import type { ItemDTO, OfferDTO } from '../../types/interfaces';
+import type { OfferDTO } from '../../types/interfaces';
 import '../../styles/modal.scss';
 import { convertToUIDateTime } from '../../services/offerService';
+import { useItemsContext } from '../../context/ItemsContext';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  items: ItemDTO[];
   offers: OfferDTO[];
   onSave: (itemId: number, offerIds: number[]) => void;
   initialItemId?: number;
@@ -16,7 +16,6 @@ interface Props {
 const MapItemOfferModal: React.FC<Props> = ({
   isOpen,
   onClose,
-  items,
   offers,
   onSave,
   initialItemId = 0,
@@ -24,7 +23,7 @@ const MapItemOfferModal: React.FC<Props> = ({
 }) => {
   const [selectedItemId, setSelectedItemId] = useState<number | undefined>(initialItemId);
   const [selectedOfferIds, setSelectedOfferIds] = useState<number[]>(initialOfferIds);
-
+  const { items } = useItemsContext();
 
   const handleOfferChange = (offerId: number) => {
     setSelectedOfferIds(prev =>

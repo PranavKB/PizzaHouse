@@ -1,28 +1,17 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
-import { getImage, getItemsDTO } from '../services/itemService';
-import { clearCartApi, getUserCart, placeOrder } from '../services/orderService';
-import { useNavigate } from 'react-router-dom';
+import { useItemsContext } from '../context/ItemsContext';
 import { useCart, type CartItem } from '../context/CartContext';
+import '../styles/itemMenu.scss';
+import { useNavigate } from 'react-router-dom';
 import showNotification from '../components/Notification/showNotification';
 import Counter from '../components/Counter/Counter';
-import '../styles/itemMenu.scss';
-import type { ItemDTO, MenuProps } from '../types/interfaces';
 import { LogoutButton } from './LogoutButton';
 import ImageFromBlob from './ImageFromBlob';
+import type { ItemDTO, MenuProps } from '../types/interfaces';
+import { clearCartApi, getUserCart, placeOrder } from '../services/orderService';
 
-const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
-  const [items, setItems] = useState<ItemDTO[]>([]);
-  const [quantities, setQuantities] = useState<Record<number, number>>({});
-  const [visibleCounters, setVisibleCounters] = useState<Set<number>>(new Set());
-  const [loading, setLoading] = useState(true);
-
-  const [filter, setFilter] = useState<'ALL' | 'VEG' | 'NON_VEG'>('ALL');
-
-  const isBackendImage = (path: string): boolean => path.startsWith("image/view/");
-  const isStaticImage = (path: string): boolean => path.startsWith("images/"); // from public/
-
-
-  const navigate = useNavigate();
+const ItemMenu: React.FC<MenuProps> = () => {
+  const { items, loading, error, refreshItems } = useItemsContext();
   const {
     cart,
     addToCart,
@@ -34,68 +23,48 @@ const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
     getDiscountedPrice,
     cartOrderId,
     setCartOrderId,
+    quantities,
+    setQuantities,
+    visibleCounters,
+    setVisibleCounters,
   } = useCart();
 
   const initialCartQuantitiesRef = useRef<Record<number, number>>({});
+  const [filter, setFilter] = useState<'ALL' | 'VEG' | 'NON_VEG'>('ALL');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchItemsData = async () => {
-      try {
-        const data = await getItemsDTO();
-        setItems(data);
-        console.log('Fetched items:', data);
-      } catch {
-        showNotification.error('Failed to load items.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchItemsData();
-  }, []);
+    if (!items || items.length === 0) {
+      refreshItems();
+    }
+  }, [items, refreshItems]);
 
   useEffect(() => {
-    if (items.length > 0) {
-      fetchCart(); // Safe to call now
+    if (items && items.length > 0) {
+      fetchCartFromApi();
     }
   }, [items]);
 
-  useEffect(() => {
-    const newQuantities: Record<number, number> = {};
-    const counters = new Set<number>();
-
-    cart.forEach(({ itemId, quantity }) => {
-      newQuantities[itemId] = quantity;
-      if (quantity > 0) counters.add(itemId);
-    });
-
-    setQuantities(newQuantities);
-    setVisibleCounters(counters);
-  }, [cart]);
-
-  const fetchCart = async () => {
+  const fetchCartFromApi = async () => {
     try {
-      const data = await getUserCart(); // example: { "1": 2, "3": 1 }
-
+      const data = await getUserCart(); 
       setQuantities(data);
       setVisibleCounters(new Set(Object.keys(data).map((id) => parseInt(id))));
       initialCartQuantitiesRef.current = data;
 
-      //   cart
-      const updatedCart = Object.entries(data).map(([itemIdStr, quantity]) => {
+      const updatedCart = Object.entries(data).map(([itemIdStr, qty]) => {
         const itemId = parseInt(itemIdStr);
         const item = items.find((i) => i.itemId === itemId);
-
         if (!item) {
-          console.warn(`Item with ID ${itemId} not found in 'items' list.`);
+          console.warn(`Item ${itemId} not found`);
           return null;
         }
-
         return {
           ...item,
-          quantity: Number(quantity),
+          quantity: Number(qty),
         };
-      }).filter((item): item is CartItem => item !== null); // type guard
+      }).filter((i): i is CartItem => i !== null);
 
       setCart(updatedCart);
     } catch (err) {
@@ -104,48 +73,48 @@ const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
     }
   };
 
-
-
-  const isCartChanged = () => {
-    const original = initialCartQuantitiesRef.current;
-    const keys1 = Object.keys(original);
-    const keys2 = Object.keys(quantities);
-
-    if (keys1.length !== keys2.length) return true;
-
-    for (let key of keys1) {
-      if (quantities[+key] !== original[+key]) {
-        return true;
-      }
+  useEffect(() => {
+    const newQuantities: Record<number, number> = {};
+    const counters = new Set<number>();
+    if(cart.length === 0) {
+      setQuantities({});
+      setVisibleCounters(new Set());
+      return;
     }
-
-    return false;
-  };
+    cart.forEach(({ itemId, quantity }) => {
+      newQuantities[itemId] = quantity;
+      if (quantity > 0) counters.add(itemId);
+    });
+    setQuantities(newQuantities);
+    setVisibleCounters(counters);
+  }, [cart]);
 
   const handleIncrement = (item: ItemDTO) => {
     const newQty = (quantities[item.itemId] || 0) + 1;
-    addToCart(item);
+    addToCart(item, 1);
     setQuantities((prev) => ({ ...prev, [item.itemId]: newQty }));
     setVisibleCounters((prev) => new Set(prev).add(item.itemId));
   };
 
   const handleDecrement = (item: ItemDTO) => {
     const currentQty = quantities[item.itemId] || 0;
-    if (currentQty > 1) {
+    if (currentQty > 0) {
       decrementItem(item.itemId);
-      setQuantities((prev) => ({ ...prev, [item.itemId]: currentQty - 1 }));
-    } else {
-      decrementItem(item.itemId);
-      setQuantities((prev) => {
-        const updated = { ...prev };
-        delete updated[item.itemId];
-        return updated;
-      });
-      setVisibleCounters((prev) => {
-        const updated = new Set(prev);
-        updated.delete(item.itemId);
-        return updated;
-      });
+      const newQty = currentQty - 1;
+      if (newQty > 0) {
+        setQuantities((prev) => ({ ...prev, [item.itemId]: newQty }));
+      } else {
+        setQuantities((prev) => {
+          const copy = { ...prev };
+          delete copy[item.itemId];
+          return copy;
+        });
+        setVisibleCounters((prev) => {
+          const copy = new Set(prev);
+          copy.delete(item.itemId);
+          return copy;
+        });
+      }
     }
   };
 
@@ -158,36 +127,46 @@ const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
           .filter((i) => i.quantity > 0)
       );
       setQuantities((prev) => {
-        const updated = { ...prev };
-        delete updated[item.itemId];
-        return updated;
+        const copy = { ...prev };
+        delete copy[item.itemId];
+        return copy;
       });
       setVisibleCounters((prev) => {
-        const updated = new Set(prev);
-        updated.delete(item.itemId);
-        return updated;
+        const copy = new Set(prev);
+        copy.delete(item.itemId);
+        return copy;
       });
     }
   };
 
-  const handleAddToCart = (item: ItemDTO) => {
-    addToCart(item, 1);
-    setQuantities((prev) => ({ ...prev, [item.itemId]: 1 }));
-    setVisibleCounters((prev) => new Set(prev).add(item.itemId));
-  };
+    const isCartChanged = () => {
+      const original = initialCartQuantitiesRef.current;
+      const keys1 = Object.keys(original);
+      const keys2 = Object.keys(quantities);
 
-  const handleClearCart = () => {
-    clearCart();
-    setQuantities({});
-    setVisibleCounters(new Set());
-    clearCartApiCall();
-  };
+      if (keys1.length !== keys2.length) return true;
 
-  const handleOrderHistory = () => {
-    navigate('/order-history');
-  };
+      for (let key of keys1) {
+        if (quantities[+key] !== original[+key]) {
+          return true;
+        }
+      }
+      return false;
+    };
 
-  const saveCartItems = async () => {
+  const saveCartItems = () => {
+    setCart(
+      items
+        .filter((item) => quantities[item.itemId])
+        .map((item) => ({
+          ...item,
+          quantity: quantities[item.itemId] || 0,
+        }))
+    );
+    saveCartItemsCall();
+    initialCartQuantitiesRef.current = { ...quantities };
+  }
+  const saveCartItemsCall = async () => {
     if (!isCartChanged()) return; // Skip if cart unchanged
 
     const order = Object.fromEntries(
@@ -197,54 +176,60 @@ const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
   };
 
   const handleCheckout = () => {
-    setCart(
-      items
-        .filter((item) => quantities[item.itemId])
-        .map((item) => ({
-          ...item,
-          quantity: quantities[item.itemId] || 0,
-        }))
-    );
     saveCartItems();
     navigate('/checkout');
   };
 
-  const addToCartApiCall = async (order: Record<number, number>) => {
-    try {
-      console.log("cartOrderId:", cartOrderId );
-      const data = await placeOrder(order, 1);
-      if (data?.[0]) setCartOrderId(data[0].orderId);
-    } catch (err: any) {
-      showNotification.error('Failed to add to cart.');
-      console.error(err);
-    }
+  const handleAddToCartFirst = (item: ItemDTO) => {
+    addToCart(item, 1);
+    setQuantities((prev) => ({ ...prev, [item.itemId]: 1 }));
+    setVisibleCounters((prev) => new Set(prev).add(item.itemId));
   };
+
+  const handleClearCart = () => {
+    clearCart();    
+    clearCartApiCall();
+  };
+
+    const addToCartApiCall = async (order: Record<number, number>) => {
+      try {
+        console.log("cartOrderId:", cartOrderId );
+        const data = await placeOrder(order, 1);
+        if (data) setCartOrderId(data.orderId);
+        showNotification.success('Items saved to cart.');
+      } catch (err: any) {
+        showNotification.error('Failed to add to cart.');
+        console.error(err);
+      }
+    };
 
   const clearCartApiCall = async () => {
     try {
       await clearCartApi();
-      setLoading(false);
-    } catch (err: any) {
-      showNotification.error('Failed to clear cart.');
+    } catch (err) {
+      showNotification.error('Failed to clear cart on server.');
       console.error(err);
     }
   };
 
   const totalItems = useMemo(
-    () => Object.values(quantities).reduce((acc, qty) => acc + qty, 0),
+    () => Object.values(quantities).reduce((sum, qty) => sum + qty, 0),
     [quantities]
   );
 
+  if (loading) {
+    return <p>Loading items...</p>;
+  }
+
+  if (error) {
+    return <p>Error loading items: {error}</p>;
+  }
+
   return (
     <div className="item-selection">
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <>
-          <div className="sticky-header">
-            <h1>Select Your Pizza</h1>
-            
-            <div className="filter-buttons">
+      <div className="sticky-header">
+        <h1>Select Your Pizza</h1>
+         <div className="filter-buttons">
               <button
                 className={`ALL ${filter === 'ALL' ? 'active' : ''}`}
                 onClick={() => setFilter('ALL')}
@@ -264,93 +249,91 @@ const ItemMenu: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
                 Non-Veg
               </button>
             </div>
-
-            <div className="cart-bar">
-              <div className="cart-info">
-                <span>
-                  Cart: <strong>{totalItems}</strong> item{totalItems !== 1 ? 's' : ''}
-                </span>
-                <button onClick={handleCheckout}>Checkout</button>
-                <button onClick={handleClearCart}>Clear Cart</button>
-              <button onClick={handleOrderHistory}>Order History</button>
-              </div>
-              <LogoutButton setIsAuthenticated={setIsAuthenticated} />
-            </div>
-            
+        <div className="cart-bar">
+          <div className="cart-info">
+            <span>
+              Cart: <strong>{totalItems}</strong> item{totalItems !== 1 ? 's' : ''}
+            </span>
+            <button onClick={handleCheckout}>Checkout</button>
+            <button onClick={saveCartItems}>Save Cart</button>
+            <button onClick={handleClearCart}>Clear Cart</button>
+            <button onClick={() => navigate('/order-history')}>Order History</button>
           </div>
-          
+          <LogoutButton />
+        </div>
+      </div>
 
-          <div className="item-grid">
-            {items
-              .filter((item) => {
-                if (filter === 'ALL') return true;
-                if (filter === 'VEG') return item.isVeg;
-                if (filter === 'NON_VEG') return !item.isVeg;
-                return true;
-              })
-              .map((item) => {
-              const activeOfferItems =
-                item.offers?.filter((offer) => isOfferActiveFn(offer)) ?? [];
+      <div className="item-grid">
+        {items
+          .filter((item) => {
+                  if (filter === 'ALL') return true;
+                  if (filter === 'VEG') return item.isVeg;
+                  if (filter === 'NON_VEG') return !item.isVeg;
+                  return true;
+                })
+          .map((item) => {
+            const activeOffers = (item.offers || []).filter(isOfferActiveFn);
+            const bestOffer = getBestOffer(item);
+            const discountedPrice = getDiscountedPrice(item, bestOffer);
 
-              const bestOffer = getBestOffer(item);
-              const discountedPrice = getDiscountedPrice(item, bestOffer);
-
-              return (
-                <div className="item-card" key={item.itemId}>
-                  {isBackendImage(item.imageUrl) ? (
+            return (
+              <div className="item-card" key={item.itemId}>
+                {item.imageUrl.startsWith('image/view/') ? (
                   <ImageFromBlob imagePath={item.imageUrl} alt={item.itemName} />
-                    ) : isStaticImage(item.imageUrl) ? (
-                      <img src={`src/assets/${item.imageUrl}`} alt={item.itemName} />
-                    ) : (
-                      <img src="/images/fallback.jpg" alt="No Image" />
-                    )}
+                ) : item.imageUrl.startsWith('images/') ? (
+                  <img
+                    src={`src/assets/${item.imageUrl}`}
+                    alt={item.itemName}
+                  />
+                ) : (
+                  <img src="/images/fallback.jpg" alt="No Image" />
+                )}
 
+                {activeOffers.length > 0 && (
+                  <div className="offer-tags">
+                    {activeOffers.map((offer, idx) => (
+                      <div
+                        key={idx}
+                        className={
+                          offer.discountType === 'FLAT'
+                            ? 'offer-tag-top'
+                            : offer.discountType === 'PERCENTAGE'
+                            ? 'offer-tag green-tag'
+                            : 'offer-ribbon'
+                        }
+                      >
+                        {offer.offerText}
+                      </div>
+                    ))}
+                  </div>
+                )}
 
-                  {activeOfferItems.length > 0 && (
-                    <div className="offer-tags">
-                      {activeOfferItems.map((offerItem, index) => (
-                        <div
-                          key={index}
-                          className={
-                            offerItem.discountType === 'FLAT'
-                              ? 'offer-tag-top'
-                              : offerItem.discountType === 'PERCENTAGE'
-                              ? 'offer-tag green-tag'
-                              : ' offer-ribbon'
-                          }
-                        >
-                          {offerItem.offerText}
-                        </div>
-                      ))}
-                    </div>
+                <h3>{item.itemName}</h3>
+                <p>
+                  ₹{discountedPrice.toFixed(2)}
+                  {bestOffer && bestOffer.discountType !== 'BOGO' && (
+                    <span className="original-price">
+                      ₹{item.itemPrice.toFixed(2)}
+                    </span>
                   )}
+                </p>
 
-                  <h3>{item.itemName}</h3>
-                  <p>
-                    ₹{discountedPrice.toFixed(2)}
-                    {bestOffer && bestOffer.discountType !== 'BOGO' && (
-                      <span className="original-price">₹{item.itemPrice.toFixed(2)}</span>
-                    )}
-                  </p>
-
-                  {visibleCounters.has(item.itemId) ? (
-                    <Counter
-                      value={quantities[item.itemId] || 0}
-                      onIncrement={() => handleIncrement(item)}
-                      onDecrement={() => handleDecrement(item)}
-                      onReset={() => handleReset(item)}
-                    />
-                  ) : (
-                    <button onClick={() => handleAddToCart(item)}>
-                      Add to Cart
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </>
-      )}
+                {visibleCounters.has(item.itemId) ? (
+                  <Counter
+                    value={quantities[item.itemId] || 0}
+                    onIncrement={() => handleIncrement(item)}
+                    onDecrement={() => handleDecrement(item)}
+                    onReset={() => handleReset(item)}
+                  />
+                ) : (
+                  <button onClick={() => handleAddToCartFirst(item)}>
+                    Add to Cart
+                  </button>
+                )}
+              </div>
+            );
+          })}
+      </div>
     </div>
   );
 };

@@ -1,38 +1,27 @@
 import React, { useEffect, useState } from 'react';
 import '../../../styles/admin/itemList.scss';
 import type { ItemDTO, MenuProps, OfferDTO } from '../../../types/interfaces';
-import { getItemsDTO } from '../../../services/itemService';
 import showNotification from '../../../components/Notification/showNotification';
 import { useNavigate } from 'react-router-dom';
 import { LogoutButton } from '../../LogoutButton';
 import MapItemOfferModal from '../MapItemOfferModal';
 import { getOffersDTO, mapItemToOffers } from '../../../services/offerService';
 import AddNewItem from './AddNewItem';
+import { useItemsContext } from '../../../context/ItemsContext';
 
-const ItemList: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
-  const [loading, setLoading] = useState<boolean>(true);
-  const [items, setItems] = useState<ItemDTO[]>([]);
+const ItemList: React.FC<MenuProps> = () => {
   const [offers, setOffers] = useState<OfferDTO[]>([]);
   const [selectedItem, setSelectedItem] = useState<ItemDTO | null>(null);
 
   const [isAddItemOpen, setIsAddItemOpen] = useState(false);
   const [isMapOfferOpen, setIsMapOfferOpen] = useState(false);
   const navigate = useNavigate();
+  const { items, setItems, setLoading } = useItemsContext();
 
   useEffect(() => {
-    const fetchItemsData = async () => {
-      try {
-        const data = await getItemsDTO();
-        setItems(data);
-        console.log('Fetched items:', data);
-      } catch {
-        showNotification.error('Failed to load items.');
-      } finally {
-        setLoading(false);
-      }
-    };
     const fetchOffers = async () => {
         try {
+          setLoading(true);
           const response = await getOffersDTO();
           setOffers(response);
         } catch (err: any) {
@@ -43,7 +32,6 @@ const ItemList: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
         }
       };
 
-    fetchItemsData();
     fetchOffers();
   }, []);
 
@@ -84,21 +72,18 @@ const ItemList: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
   return (
 <>
     <div className="header-class">
-                {loading ? (
-                <p>Loading...</p>
-                ) : (
+                
                     <>
                         <div className="sticky-header">
-                            
-    
+                            <h1>Items</h1>
+
                             <div className="header-bar">
                                 <div className="header-info">
                                     <button onClick={redirectToOffers}>Offers</button>
                                     <button onClick={() => setIsAddItemOpen(true)}>Add Item</button>
                                 </div>
-                                <div><h1>Items</h1></div>
-                                <LogoutButton setIsAuthenticated={setIsAuthenticated} />
-                            </div>
+                                <LogoutButton/>
+                                </div>
                         </div>
                         <div className="table-list-container">
                             <div className="table-list-header">
@@ -129,7 +114,7 @@ const ItemList: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
                           ))}
                         </div>
                     </>
-                )}
+                
     
                 
             </div>
@@ -138,7 +123,6 @@ const ItemList: React.FC<MenuProps> = ({ setIsAuthenticated }) => {
               <MapItemOfferModal
                 isOpen={true}
                 onClose={() => setIsMapOfferOpen(false)}
-                items={items}
                 offers={offers}
                 onSave={handleSaveMapItems}
                 initialItemId={selectedItem?.itemId || 0}

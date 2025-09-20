@@ -77,18 +77,17 @@ public class OrderController {
     }
 
     @PostMapping(value = "/newOrder", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<List<OrderItem>> createOrder(@Valid @RequestBody Map<Integer, Integer> orderList, @Valid @RequestParam Integer orderStatus, HttpServletRequest req) {
+    public ResponseEntity<OrderDTO> createOrder(@Valid @RequestBody Map<Integer, Integer> orderList, @Valid @RequestParam Integer orderStatus, HttpServletRequest req) {
 		System.out.println("Inside create Order Controller.java") ;
 
-        List<OrderItem> orderItems = new ArrayList<OrderItem>();
 		String email = userService.getEmailFromRequest(req) ;
-		orderItems = orderService.saveOrder(orderList, orderStatus, email) ;
+		OrderDTO orderDTO = orderService.saveOrder(orderList, orderStatus, email) ;
 
-        if(orderItems != null) {
-			return new ResponseEntity<List<OrderItem>>(orderItems, HttpStatus.CREATED) ;    		
+        if(orderDTO != null) {
+			return new ResponseEntity<OrderDTO>(orderDTO, HttpStatus.CREATED) ;    		
 		}
 		else {
-			return new ResponseEntity<List<OrderItem>>(Collections.emptyList() ,HttpStatus.CONFLICT) ;
+			return new ResponseEntity<OrderDTO>(HttpStatus.CONFLICT) ;
 		}
     }
 

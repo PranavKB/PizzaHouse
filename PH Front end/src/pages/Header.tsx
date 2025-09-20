@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import type { ItemDTO, OfferDTO } from '../types/interfaces';
+import type { OfferDTO } from '../types/interfaces';
 import { useNavigate } from 'react-router-dom';
 import { LogoutButton } from './LogoutButton';
 import ItemOfferTableModal from './offers/ItemOfferTableModal';
@@ -8,16 +8,14 @@ import UserTypesTableModal from './admin/UserTypesTableModal';
 import AddOffer from './offers/AddOffer';
 
 interface Props {
-    setIsAuthenticated: (isAuthenticated: boolean) => void;
     setOffers: React.Dispatch<React.SetStateAction<OfferDTO[]>>;
     offers: OfferDTO[];
-    items: ItemDTO[];
     handleSaveMapItems: (itemId: number, offerIds: number[]) => Promise<void>;
     itemOfferMap: Record<number, number[]>;
     heading: string;
 }
 
-const Header: React.FC<Props> = ({ setIsAuthenticated, setOffers, offers, items, handleSaveMapItems, itemOfferMap, heading }) => {
+const Header: React.FC<Props> = ({  setOffers, offers, handleSaveMapItems, itemOfferMap, heading }) => {
 
     const [isAddOfferOpen, setIsAddOfferOpen] = useState(false);
     const [isMapOfferOpen, setIsMapOfferOpen] = useState(false);
@@ -43,11 +41,11 @@ const Header: React.FC<Props> = ({ setIsAuthenticated, setOffers, offers, items,
                         <div className="header-bar">
                             <div className="header-info">                            
                               {/* <button onClick={redirectToUserTypes}>User Types</button> */}
+                              <button onClick={() => navigate('/item-list')}>Items</button>
                               <button onClick={() => setIsUserTypesOpen(true)}>User Types Table</button>
                               <button onClick={() => setIsMapOfferOpen(true)}>Map Offer</button>
                               <button onClick={() => setIsItemOfferOpen(true)}>Item Offer Table</button>
                               <button onClick={handleAddOffer}>Add Offer</button>
-                              <button onClick={() => navigate('/item-list')}>Items</button>
                             </div>
                             {isAddOfferOpen && (
                                 <div className="modal-backdrop">
@@ -63,18 +61,16 @@ const Header: React.FC<Props> = ({ setIsAuthenticated, setOffers, offers, items,
                             <MapItemOfferModal
                               isOpen={isMapOfferOpen}
                               onClose={() => setIsMapOfferOpen(false)}
-                              items={items}
                               offers={offers}
                               onSave={handleSaveMapItems}
                             />
                             <ItemOfferTableModal
                               isOpen={isItemOfferOpen}
                               onClose={() => setIsItemOfferOpen(false)}
-                              items={items}
                               offers={offers}
                               itemOfferMap={itemOfferMap}
                             />
-                            <LogoutButton setIsAuthenticated={setIsAuthenticated} />
+                            <LogoutButton />
                         </div>
                     </div>
     )

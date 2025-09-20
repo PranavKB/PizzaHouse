@@ -3,6 +3,7 @@ import type { UserType } from '../../types/interfaces';
 import '../../styles/modal.scss';
 import { getUserTypes } from '../../services/itemService';
 import showNotification from '../../components/Notification/showNotification';
+import { useItemsContext } from '../../context/ItemsContext';
 
 interface Props {
   isOpen: boolean;
@@ -14,8 +15,7 @@ const UserTypesTableModal: React.FC<Props> = ({
   onClose
 }) => {
 
-    
-    const [loading, setLoading] = useState<boolean>(true);
+  const { setLoading } = useItemsContext();
     const [userTypes, setUserTypes] = useState<UserType[]>([]);
 
 

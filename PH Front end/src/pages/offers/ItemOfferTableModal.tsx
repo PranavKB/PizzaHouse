@@ -1,11 +1,11 @@
 import React from 'react';
-import type { ItemDTO, OfferDTO } from '../../types/interfaces';
+import type { OfferDTO } from '../../types/interfaces';
 import '../../styles/modal.scss';
+import { useItemsContext } from '../../context/ItemsContext';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  items: ItemDTO[];
   offers: OfferDTO[];
   itemOfferMap: Record<number, number[]>;
 }
@@ -13,11 +13,11 @@ interface Props {
 const ItemOfferTableModal: React.FC<Props> = ({
   isOpen,
   onClose,
-  items,
   offers,
   itemOfferMap
 }) => {
 
+  const { items } = useItemsContext();
 const offerIdMap: Record<number, OfferDTO> = Array.isArray(offers)
   ? offers.reduce((map, offer) => {
       map[offer.id] = offer;

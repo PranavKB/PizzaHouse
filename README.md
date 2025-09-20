@@ -6,9 +6,11 @@ A full-stack web application for managing a pizza restaurant ordering system wit
 
 ```
 PizzaHouse/
-├── PH Back end/     # Spring Boot backend (see [README](./PH%20Back%20end/README.md))
-├── PH Front end/    # React + TypeScript frontend (see [README](./PH%20Front%20end/README.md))
+├── PH Back end/     # Spring Boot backend (see [README](./PH Back end/README.md))
+├── PH Front end/    # React + TypeScript frontend (see [README](./PH Front end/README.md))
 ```
+- [Backend README](./PH%20Back%20end/README.md)
+- [Frontend README](./PH%20Front%20end/README.md)
 
 ## Technologies Used
 
@@ -32,7 +34,7 @@ PizzaHouse/
 ```bash
 # Backend
 cd "PH Back end"
-cp .env.example .env        # Fill in DB and secrets
+cp .env.example .env        # copy from .env.example to .env
 mvn spring-boot:run
 
 # Frontend

@@ -1,24 +1,23 @@
 import { useEffect, useState } from "react";
-import type { ItemDTO, MenuProps, OfferDTO } from "../../types/interfaces";
+import type { MenuProps, OfferDTO } from "../../types/interfaces";
 import '../../styles/header.scss';
 import '../../styles/table.scss';
 import '../../styles/modal.scss';
 import { convertToUIDateTime, deleteOffer, getOffersDTO, getItemOfferIdMap, mapItemToOffers } from "../../services/offerService";
-import { getItemsDTO } from "../../services/itemService";
 import showNotification from "../../components/Notification/showNotification";
 import { useConfirm } from "../../components/ConfirmBox/useConfirm";
 import Header from "../Header";
-const Offers: React.FC<MenuProps> = ({setIsAuthenticated}) => {
+import { useItemsContext } from "../../context/ItemsContext";
+const Offers: React.FC<MenuProps> = () => {
 
-    const [loading, setLoading] = useState<boolean>(true);
     const [offers, setOffers] = useState<OfferDTO[]>([]);
-    const [items, setItems] = useState<ItemDTO[]>([]);
     const [itemOfferMap, setItemOfferMap] = useState<Record<number, number[]>>({});
     const { confirm, ConfirmModal } = useConfirm();
-
+    const { setLoading } = useItemsContext();
     useEffect(() => {
       const fetchOffers = async () => {
         try {
+          setLoading(true);
           const response = await getOffersDTO();
           setOffers(response);
         } catch (err: any) {
@@ -28,15 +27,6 @@ const Offers: React.FC<MenuProps> = ({setIsAuthenticated}) => {
           setLoading(false);
         }
       };   
-      const fetchItems = async () => {
-        try {
-          const response = await getItemsDTO();
-          setItems(response);
-        } catch (err: any) {
-          showNotification.error('Failed to load items.');
-          console.error(err);
-        }
-      };
       const fetchItemOfferMap = async () => {
         try {
           const response = await getItemOfferIdMap();
@@ -48,7 +38,6 @@ const Offers: React.FC<MenuProps> = ({setIsAuthenticated}) => {
       };
 
       fetchOffers();
-      fetchItems();
       fetchItemOfferMap();
     }, []);
 
@@ -67,14 +56,11 @@ const Offers: React.FC<MenuProps> = ({setIsAuthenticated}) => {
     return (
 
         <div className="header-class">
-            {loading ? (
-            <p>Loading...</p>
-            ) : (
+            
                 <>
-                    <Header setIsAuthenticated={setIsAuthenticated} 
+                    <Header 
                       setOffers={setOffers}
                       offers={offers}
-                      items={items}
                       handleSaveMapItems={handleSaveMapItems}
                       itemOfferMap={itemOfferMap}
                       heading="Offers"
@@ -107,7 +93,7 @@ const Offers: React.FC<MenuProps> = ({setIsAuthenticated}) => {
                         <ConfirmModal />
                     </div>
                 </>
-            )}
+            
 
             
         </div>

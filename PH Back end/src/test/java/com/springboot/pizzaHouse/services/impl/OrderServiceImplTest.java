@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -14,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import com.springboot.pizzaHouse.dto.OrderDTO;
+import com.springboot.pizzaHouse.dto.OrderItemDTO;
 import com.springboot.pizzaHouse.extras.AppliedOffer;
 import com.springboot.pizzaHouse.extras.OfferCalculationResult;
 import com.springboot.pizzaHouse.model.*;
@@ -124,12 +125,13 @@ class OrderServiceImplTest {
         when(offerService.getOfferById(anyLong())).thenReturn(Optional.of(mockOffer));
 
         // Execute
-        List<OrderItem> updatedOrderItems = orderService.saveOrder(orderList, 1, mockUser.getEmail());
+        OrderDTO orderDTO = orderService.saveOrder(orderList, 1, mockUser.getEmail());
+        List<OrderItemDTO> updatedOrderItems = orderDTO.getOrderItems();
 
         // Verify
         assertNotNull(updatedOrderItems);
         assertEquals(1, updatedOrderItems.size()); // Fixed: should expect 1 item
-        OrderItem orderItem = updatedOrderItems.get(0);
+        OrderItemDTO orderItem = updatedOrderItems.get(0);
         assertEquals(mockItem.getItemId(), orderItem.getItemId());
         assertEquals(2, orderItem.getQuantity());
         assertEquals(200, orderItem.getSubTotal());
@@ -155,11 +157,12 @@ class OrderServiceImplTest {
         when(offerService.applyAllOffers(any(), anyInt(), anyList())).thenReturn(calcResult);
         when(orderItemRepository.save(any(OrderItem.class))).thenReturn(mockOrderItem);
 
-        List<OrderItem> updatedOrderItems = orderService.saveOrder(orderList, 1, mockUser.getEmail());
+        OrderDTO orderDTO = orderService.saveOrder(orderList, 1, mockUser.getEmail());
+        List<OrderItemDTO> updatedOrderItems = orderDTO.getOrderItems();
 
         assertNotNull(updatedOrderItems);
         assertEquals(1, updatedOrderItems.size());
-        OrderItem orderItem = updatedOrderItems.get(0);
+        OrderItemDTO orderItem = updatedOrderItems.get(0);
         assertEquals(3, orderItem.getQuantity());
         assertEquals(300, orderItem.getSubTotal());
 
