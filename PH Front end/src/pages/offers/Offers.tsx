@@ -83,9 +83,9 @@ const Offers: React.FC<MenuProps> = () => {
                             <div className="table-cell">{offer.isActive ? 'Active' : 'Inactive'}</div>
                             <div className="table-cell">
                                 {
-                                  offer.validTo && new Date(offer.validTo) > new Date() && (
+                                  offer.validTo && new Date(offer.validTo) > new Date() ? (
                                     <button onClick={() => handleDeleteOffer(offer.id)}>Delete</button>
-                                  )
+                                  ) : 'Expired'
                                 }
                             </div>
                         </div>

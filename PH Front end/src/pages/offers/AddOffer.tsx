@@ -56,77 +56,83 @@ const AddOffer: React.FC<AddOfferProps> = ({ onClose, setOffers }) => {
           <form onSubmit={handleSubmit(onSubmit)}>
             {/* Offer Text */}
             <div className="form-group">
-              {errors.offerText && <span className="error">{errors.offerText.message}</span>}
-              <input
-                type="text"
-                id="offerText"
-                placeholder=" "
-                {...register('offerText', { required: 'Offer name is required' })}
-              />
-              <div className="cut"></div>
-              <label className="placeholder" htmlFor="offerText">Offer Name</label>
+              <label htmlFor="offerText">Offer Name</label>
+              <div className="form-input">
+                <input
+                  type="text"
+                  id="offerText"
+                  placeholder=" "
+                  {...register('offerText', { required: 'Offer name is required' })}
+                />
+                {errors.offerText && <span className="error">{errors.offerText.message}</span>}
             </div>
+          </div>
 
             {/* Discount Type */}
             <div className="form-group">
-              <select id="discountType" {...register('discountType')}>
-                <option value="" disabled hidden></option>
-                <option value="BOGO">BOGO</option>
-                <option value="FLAT">Flat</option>
-                <option value="PERCENTAGE">Percentage</option>
+              <label htmlFor="discountType">Discount Type</label>
+              <div className="form-input">
+                 <select id="discountType" {...register('discountType')}>
+                  <option value="" disabled hidden></option>
+                  <option value="BOGO">BOGO</option>
+                  <option value="FLAT">Flat</option>
+                  <option value="PERCENTAGE">Percentage</option>
               </select>
-              <div className="cut"></div>
-              <label className="placeholder" htmlFor="discountType">Discount Type</label>
+              </div>
             </div>
 
             {/* Discount Value */}
             {discountType !== 'BOGO' && (
               <div className="form-group">
-                {errors.discountValue && <span className="error">{errors.discountValue.message}</span>}
-                <input
-                  type="number"
-                  id="discountValue"
-                  placeholder=" "
-                  {...register('discountValue', {
-                    required: 'Discount value is required',
-                    min: { value: 0.01, message: 'Must be greater than 0' },
-                  })}
-                />
-                <div className="cut cut-short"></div>
-                <label className="placeholder" htmlFor="discountValue">Discount Value</label>
-                
-              </div>
+                <label htmlFor="discountValue">Discount Value</label>
+                <div className="form-input">
+                  <input
+                    type="number"
+                    id="discountValue"
+                    placeholder=" "
+                    {...register('discountValue', {
+                      required: 'Discount value is required',
+                      min: { value: 0.01, message: 'Must be greater than 0' },
+                    })}
+                  />
+                  {errors.discountValue && <span className="error">{errors.discountValue.message}</span>}
+                </div>
+               </div>
             )}
 
             {/* Valid From */}
             <div className="form-group">
-              {errors.validFrom && <span className="error">{errors.validFrom.message}</span>}
-              <input type="datetime-local" id="validFrom" placeholder=" " {...register("validFrom", { required: true })} />
-              <div className="cut"></div>
-              <label className="placeholder" htmlFor="validFrom">Valid From</label>
+              <label htmlFor="validFrom">Valid From</label>
+              
+              <div className="form-input">
+                <input type="datetime-local" id="validFrom" placeholder=" " {...register("validFrom", { required: true })} />
+                {errors.validFrom && <span className="error">{errors.validFrom.message}</span>}
+              </div>
             </div>
 
             {/* Valid To */}
             <div className="form-group">
-              {errors.validTo && <span className="error">{errors.validTo.message}</span>}
-              <input type="datetime-local" id="validTo" placeholder=" " {...register("validTo", {
-                  required: true,
-                  validate: (toValue) => {
-                    if (!validFrom || !toValue) return true;
-                    return new Date(validFrom) < new Date(toValue)
+              <label htmlFor="validTo">Valid To</label>
+              <div className="form-input">
+                <input type="datetime-local" id="validTo" placeholder=" " {...register("validTo", {
+                    required: true,
+                    validate: (toValue) => {
+                      if (!validFrom || !toValue) return true;
+                      return new Date(validFrom) < new Date(toValue)
                       || "Valid To must be after Valid From";
                   }
                 })} />
-              <div className="cut"></div>
-              <label className="placeholder" htmlFor="validTo">Valid To</label>
+                {errors.validTo && <span className="error">{errors.validTo.message}</span>}
+              </div>
             </div>
 
             {/* Is Active */}
             <div className="form-group">
-              <div><label htmlFor="isActive">Is Active</label></div>
-              <div><input type="checkbox" id="isActive" {...register('isActive')} /></div>
+              <label htmlFor="isActive">Is Active?</label>
+              <div className="form-input" style={{textAlign: "justify"}}>
+                <input type="checkbox" id="isActive" {...register('isActive')} />
+              </div>
             </div>
-
             {/* Buttons */}
             <div className="button-group">
               <button type="submit" className="submit-btn">Submit</button>

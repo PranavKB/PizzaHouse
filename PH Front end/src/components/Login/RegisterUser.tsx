@@ -150,8 +150,8 @@ const RegisterUser: React.FC = () => {
         navigate('/login');
         showNotification.success('User added successfully');
       } catch (err: any) {
-        setError(err.response?.data?.message || 'Registration failed');
-        showNotification.error(err.response?.data?.message || 'Registration failed');
+        setError(err.response?.data || 'Registration failed');
+        showNotification.error(err.response?.data || 'Registration failed');
       } finally {
         setLoading(false);
       }
