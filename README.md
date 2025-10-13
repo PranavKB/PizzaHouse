@@ -11,6 +11,7 @@ PizzaHouse/
 ```
 - [Backend README](./PH%20Back%20end/README.md)
 - [Frontend README](./PH%20Front%20end/README.md)
+- [Frontend Images](./PH%20Front%20end/README.images.md)
 
 ## Technologies Used
 
