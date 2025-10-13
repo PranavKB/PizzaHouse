@@ -11,6 +11,16 @@ Customer view to browse pizzas and add items to the cart.
 
 ---
 
+###  Customer - Order Flow
+
+#### Checkout
+![Checkout](https://github.com/user-attachments/assets/c5088121-4008-4737-8c1e-8a3d808f5518)
+
+#### Order History
+![Order History](https://github.com/user-attachments/assets/516b24ba-a011-48fc-b9f5-8b5a598f5d9c)
+
+---
+
 ###  Login / Register / Reset Password
 
 #### Login
@@ -21,16 +31,6 @@ Customer view to browse pizzas and add items to the cart.
 
 #### Password Reset
 ![Reset Password](https://github.com/user-attachments/assets/f585dbc9-1851-4d4b-9464-28f2cf994598)
-
----
-
-###  Customer - Order Flow
-
-#### Order History
-![Order History](https://github.com/user-attachments/assets/516b24ba-a011-48fc-b9f5-8b5a598f5d9c)
-
-#### Checkout
-![Checkout](https://github.com/user-attachments/assets/c5088121-4008-4737-8c1e-8a3d808f5518)
 
 ---
 
