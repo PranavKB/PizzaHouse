@@ -1,16 +1,22 @@
 import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useItemsContext } from '../context/ItemsContext';
 import { useCart, type CartItem } from '../context/CartContext';
-import '../styles/itemMenu.scss';
+// import '../styles/itemMenu.scss'; // Removing custom scss in favor of AntD styles where possible
 import { useNavigate } from 'react-router-dom';
 import showNotification from '../components/Notification/showNotification';
 import Counter from '../components/Counter/Counter';
-import { LogoutButton } from './LogoutButton';
+// import { LogoutButton } from './LogoutButton'; // Removed as it's in MainLayout
 import ImageFromBlob from './ImageFromBlob';
 import type { ItemDTO, MenuProps } from '../types/interfaces';
 import { clearCartApi, getUserCart, placeOrder } from '../services/orderService';
+import { Card, Row, Col, Typography, Button, Radio, Tag, Space, Badge, Spin, Alert, theme } from 'antd';
+import { ShoppingCartOutlined, SaveOutlined, DeleteOutlined } from '@ant-design/icons';
+
+const { Title, Text } = Typography;
+const { useToken } = theme;
 
 const ItemMenu: React.FC<MenuProps> = () => {
+  const { token } = useToken();
   const { items, loading, error, refreshItems } = useItemsContext();
   const {
     cart,
@@ -35,20 +41,20 @@ const ItemMenu: React.FC<MenuProps> = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!items || items.length === 0) {
+    if (!loading && (!items || items.length === 0)) {
       refreshItems();
     }
-  }, [items, refreshItems]);
+  }, [items.length, refreshItems, loading]);
 
   useEffect(() => {
-    if (items && items.length > 0) {
+    if (!loading && items && items.length > 0) {
       fetchCartFromApi();
     }
-  }, [items]);
+  }, [loading, items.length]);
 
   const fetchCartFromApi = async () => {
     try {
-      const data = await getUserCart(); 
+      const data = await getUserCart();
       setQuantities(data);
       setVisibleCounters(new Set(Object.keys(data).map((id) => parseInt(id))));
       initialCartQuantitiesRef.current = data;
@@ -76,7 +82,7 @@ const ItemMenu: React.FC<MenuProps> = () => {
   useEffect(() => {
     const newQuantities: Record<number, number> = {};
     const counters = new Set<number>();
-    if(cart.length === 0) {
+    if (cart.length === 0) {
       setQuantities({});
       setVisibleCounters(new Set());
       return;
@@ -139,20 +145,20 @@ const ItemMenu: React.FC<MenuProps> = () => {
     }
   };
 
-    const isCartChanged = () => {
-      const original = initialCartQuantitiesRef.current;
-      const keys1 = Object.keys(original);
-      const keys2 = Object.keys(quantities);
+  const isCartChanged = () => {
+    const original = initialCartQuantitiesRef.current;
+    const keys1 = Object.keys(original);
+    const keys2 = Object.keys(quantities);
 
-      if (keys1.length !== keys2.length) return true;
+    if (keys1.length !== keys2.length) return true;
 
-      for (let key of keys1) {
-        if (quantities[+key] !== original[+key]) {
-          return true;
-        }
+    for (let key of keys1) {
+      if (quantities[+key] !== original[+key]) {
+        return true;
       }
-      return false;
-    };
+    }
+    return false;
+  };
 
   const saveCartItems = () => {
     setCart(
@@ -187,21 +193,21 @@ const ItemMenu: React.FC<MenuProps> = () => {
   };
 
   const handleClearCart = () => {
-    clearCart();    
+    clearCart();
     clearCartApiCall();
   };
 
-    const addToCartApiCall = async (order: Record<number, number>) => {
-      try {
-        console.log("cartOrderId:", cartOrderId );
-        const data = await placeOrder(order, 1);
-        if (data) setCartOrderId(data.orderId);
-        showNotification.success('Items saved to cart.');
-      } catch (err: any) {
-        showNotification.error('Failed to add to cart.');
-        console.error(err);
-      }
-    };
+  const addToCartApiCall = async (order: Record<number, number>) => {
+    try {
+      console.log("cartOrderId:", cartOrderId);
+      const data = await placeOrder(order, 1);
+      if (data) setCartOrderId(data.orderId);
+      showNotification.success('Items saved to cart.');
+    } catch (err: any) {
+      showNotification.error('Failed to add to cart.');
+      console.error(err);
+    }
+  };
 
   const clearCartApiCall = async () => {
     try {
@@ -218,122 +224,129 @@ const ItemMenu: React.FC<MenuProps> = () => {
   );
 
   if (loading) {
-    return <p>Loading items...</p>;
+    return <Spin tip="Loading items..." fullscreen />;
   }
 
   if (error) {
-    return <p>Error loading items: {error}</p>;
+    return <Alert message="Error" description={`Error loading items: ${error}`} type="error" showIcon />;
   }
 
   return (
-    <div className="item-selection">
-      <div className="sticky-header">
-        <h1>Select Your Pizza</h1>
-         <div className="filter-buttons">
-              <button
-                className={`ALL ${filter === 'ALL' ? 'active' : ''}`}
-                onClick={() => setFilter('ALL')}
-              >
-                All
-              </button>
-              <button
-                className={`VEG ${filter === 'VEG' ? 'active' : ''}`}
-                onClick={() => setFilter('VEG')}
-              >
-                Veg
-              </button>
-              <button
-                className={`NON_VEG ${filter === 'NON_VEG' ? 'active' : ''}`}
-                onClick={() => setFilter('NON_VEG')}
-              >
-                Non-Veg
-              </button>
-            </div>
-        <div className="cart-bar">
-          <div className="cart-info">
-            <span>
-              Cart: <strong>{totalItems}</strong> item{totalItems !== 1 ? 's' : ''}
-            </span>
-            <button onClick={handleCheckout}>Checkout</button>
-            <button onClick={saveCartItems}>Save Cart</button>
-            <button onClick={handleClearCart}>Clear Cart</button>
-            <button onClick={() => navigate('/order-history')}>Order History</button>
-          </div>
-          <LogoutButton />
-        </div>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+        <Title level={2} style={{ margin: 0 }}>Select Your Pizza</Title>
+
+        <Space wrap>
+          <Radio.Group
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            buttonStyle="solid"
+          >
+            <Radio.Button value="ALL">All</Radio.Button>
+            <Radio.Button value="VEG">Veg</Radio.Button>
+            <Radio.Button value="NON_VEG">Non-Veg</Radio.Button>
+          </Radio.Group>
+
+          <Button icon={<SaveOutlined />} onClick={saveCartItems}>Save</Button>
+          <Button danger icon={<DeleteOutlined />} onClick={handleClearCart}>Clear</Button>
+          <Badge count={totalItems} showZero>
+            <Button type="primary" icon={<ShoppingCartOutlined />} onClick={handleCheckout}>Checkout</Button>
+          </Badge>
+        </Space>
       </div>
 
-      <div className="item-grid">
+      <Row gutter={[16, 24]}>
         {items
           .filter((item) => {
-                  if (filter === 'ALL') return true;
-                  if (filter === 'VEG') return item.isVeg;
-                  if (filter === 'NON_VEG') return !item.isVeg;
-                  return true;
-                })
+            if (filter === 'ALL') return true;
+            if (filter === 'VEG') return item.isVeg;
+            if (filter === 'NON_VEG') return !item.isVeg;
+            return true;
+          })
           .map((item) => {
             const activeOffers = (item.offers || []).filter(isOfferActiveFn);
             const bestOffer = getBestOffer(item);
             const discountedPrice = getDiscountedPrice(item, bestOffer);
 
             return (
-              <div className="item-card" key={item.itemId}>
-                {item.imageUrl.startsWith('image/view/') ? (
-                  <ImageFromBlob imagePath={item.imageUrl} alt={item.itemName} />
-                ) : item.imageUrl.startsWith('images/') ? (
-                  <img
-                    src={`src/assets/${item.imageUrl}`}
-                    alt={item.itemName}
-                  />
-                ) : (
-                  <img src="/images/fallback.jpg" alt="No Image" />
-                )}
-
-                {activeOffers.length > 0 && (
-                  <div className="offer-tags">
-                    {activeOffers.map((offer, idx) => (
-                      <div
-                        key={idx}
-                        className={
-                          offer.discountType === 'FLAT'
-                            ? 'offer-tag-top'
-                            : offer.discountType === 'PERCENTAGE'
-                            ? 'offer-tag green-tag'
-                            : 'offer-ribbon'
-                        }
-                      >
-                        {offer.offerText}
+              <Col xs={24} sm={12} md={8} lg={6} key={item.itemId}>
+                <Card
+                  hoverable
+                  style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+                  cover={
+                    <div style={{ height: 200, width: '100%', overflow: 'hidden', position: 'relative' }}>
+                      {item.imageUrl.startsWith('image/view/') ? (
+                        <ImageFromBlob imagePath={item.imageUrl} alt={item.itemName} />
+                      ) : item.imageUrl.startsWith('images/') ? (
+                        <img
+                          alt={item.itemName}
+                          src={`src/assets/${item.imageUrl}`}
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <img
+                          alt="No Image"
+                          src="/images/fallback.jpg"
+                          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                        />
+                      )}
+                      {activeOffers.length > 0 && (
+                        <div style={{ position: 'absolute', top: 10, left: 10, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                          {activeOffers.map((offer, idx) => (
+                            <Tag color={offer.discountType === 'PERCENTAGE' ? 'green' : 'red'} key={idx}>
+                              {offer.offerText}
+                            </Tag>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  }
+                  actions={[
+                    visibleCounters.has(item.itemId) ? (
+                      <div style={{ padding: '0 16px' }}>
+                        {/* Re-using Custom Counter or replace with AntD InputNumber later if needed. Keeping custom for now as it handles + - logic specific way */}
+                        <Counter
+                          value={quantities[item.itemId] || 0}
+                          onIncrement={() => handleIncrement(item)}
+                          onDecrement={() => handleDecrement(item)}
+                          onReset={() => handleReset(item)}
+                        />
                       </div>
-                    ))}
-                  </div>
-                )}
-
-                <h3>{item.itemName}</h3>
-                <p>
-                  ₹{discountedPrice.toFixed(2)}
-                  {bestOffer && bestOffer.discountType !== 'BOGO' && (
-                    <span className="original-price">
-                      ₹{item.itemPrice.toFixed(2)}
-                    </span>
-                  )}
-                </p>
-
-                {visibleCounters.has(item.itemId) ? (
-                  <Counter
-                    value={quantities[item.itemId] || 0}
-                    onIncrement={() => handleIncrement(item)}
-                    onDecrement={() => handleDecrement(item)}
-                    onReset={() => handleReset(item)}
+                    ) : (
+                      <Button type="primary" block onClick={() => handleAddToCartFirst(item)}>
+                        Add to Cart
+                      </Button>
+                    )
+                  ]}
+                >
+                  <Card.Meta
+                    title={
+                      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <span>{item.itemName}</span>
+                        <Tag color={item.isVeg ? 'green' : 'red'}>{item.isVeg ? 'Veg' : 'Non-Veg'}</Tag>
+                      </div>
+                    }
+                    description={
+                      <div>
+                        <Text strong style={{ fontSize: '1.2rem', color: token.colorPrimary }}>
+                          ₹{discountedPrice.toFixed(2)}
+                        </Text>
+                        {bestOffer && bestOffer.discountType !== 'BOGO' && (
+                          <Text delete type="secondary" style={{ marginLeft: 8 }}>
+                            ₹{item.itemPrice.toFixed(2)}
+                          </Text>
+                        )}
+                        <div style={{ marginTop: 8 }}>
+                          {/* {item.description} */}
+                        </div>
+                      </div>
+                    }
                   />
-                ) : (
-                  <button onClick={() => handleAddToCartFirst(item)}>
-                    Add to Cart
-                  </button>
-                )}
-              </div>
+                </Card>
+              </Col>
             );
           })}
-      </div>
+      </Row>
     </div>
   );
 };

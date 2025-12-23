@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import type { ItemDTO, ItemInfo, ItemTypeProps } from "../../../types/interfaces";
 import showNotification from "../../../components/Notification/showNotification";
 import { addItem, convertToJPG, getItemTypes, uploadImage } from "../../../services/itemService";
-import "../../../styles/admin/addItemForm.scss";
+import { Form, Input, InputNumber, Radio, Upload, Button, Select, Space, Typography } from 'antd';
+import { UploadOutlined } from '@ant-design/icons';
+
+const { Title } = Typography;
+const { Option } = Select;
 
 interface AddItemProps {
   onClose: () => void;
@@ -12,7 +16,7 @@ interface AddItemProps {
 
 const AddNewItem: React.FC<AddItemProps> = ({ onClose, setItems }) => {
   const {
-    register,
+    control,
     handleSubmit,
     setValue,
     getValues,
@@ -31,7 +35,8 @@ const AddNewItem: React.FC<AddItemProps> = ({ onClose, setItems }) => {
   });
 
   const [itemTypes, setItemTypes] = useState<ItemTypeProps[]>([]);
-  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [fileList, setFileList] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchItemTypesData = async () => {
@@ -46,49 +51,33 @@ const AddNewItem: React.FC<AddItemProps> = ({ onClose, setItems }) => {
     fetchItemTypesData();
   }, []);
 
-  useEffect(() => {
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl);
-      }
-    };
-  }, [previewUrl]);
-
-  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleImageUpload = async ({ file, onSuccess, onError }: any) => {
     const itemName = getValues("itemName");
     if (!itemName) {
       showNotification.error("Please enter the item name before uploading an image.");
+      onError("Item name missing");
       return;
     }
 
-    //  Get file extension (case-insensitive)
+    setUploading(true);
     const originalExt = file.name.substring(file.name.lastIndexOf(".")).toLowerCase();
-
     const safeName = itemName.replace(/\s+/g, "_").toLowerCase();
     const finalFileName = `${safeName}.jpg`;
 
     let finalFile: File;
 
     if (originalExt === ".jpg" || originalExt === ".jpeg") {
-      //  Already JPG — just rename
       finalFile = new File([file], finalFileName, { type: "image/jpeg" });
     } else {
-      //  Not JPG — convert using canvas
       try {
         finalFile = await convertToJPG(file);
       } catch (error) {
-        console.error("Conversion to JPG failed:", error);
         showNotification.error("Failed to convert image to JPG.");
+        onError(error);
+        setUploading(false);
         return;
       }
     }
-
-    //  Local preview
-    const preview = URL.createObjectURL(finalFile);
-    setPreviewUrl(preview);
 
     const formData = new FormData();
     formData.append("image", finalFile);
@@ -96,23 +85,22 @@ const AddNewItem: React.FC<AddItemProps> = ({ onClose, setItems }) => {
     try {
       const uploadedUrl = await uploadImage(formData);
       if (!uploadedUrl) throw new Error("Upload failed.");
-
       setValue("imageUrl", uploadedUrl);
+      onSuccess("OK");
+      showNotification.success("Image uploaded!");
     } catch (error) {
-      console.error("Image upload failed:", error);
       showNotification.error("Image upload failed.");
-      setValue("imageUrl", "");
+      onError(error);
+    } finally {
+      setUploading(false);
     }
   };
 
-
-
   const onSubmit = async (data: ItemInfo) => {
     try {
-
       const finalItem: ItemDTO = {
         ...data,
-        isVeg: data.isVeg,
+        isVeg: String(data.isVeg) === 'true' || data.isVeg === true,
         offers: [],
       };
 
@@ -124,123 +112,98 @@ const AddNewItem: React.FC<AddItemProps> = ({ onClose, setItems }) => {
       if (addedItem) {
         setItems((prev) => [...prev, addedItem]);
         showNotification.success("Item added successfully!");
-      } else {
-        showNotification.error("Failed to retrieve added item.");
       }
 
       reset();
-      setPreviewUrl(null);
+      setFileList([]);
       onClose();
     } catch (err) {
-      console.error(err);
       showNotification.error("Error adding item.");
     }
   };
 
   return (
-    <div className="form-container">
-      <h2>Add New Item</h2>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        {/* Item Name */}
-        <div className="form-group">
-          <label htmlFor="itemName">Item Name</label>
-          <div className="form-input">
-            <input
-              type="text"
-              id="itemName"
-              {...register("itemName", { required: "Item name is required" })}
+    <div style={{ padding: '0 20px' }}>
+      <Title level={3}>Add New Pizza Item</Title>
+      <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
+        <Form.Item label="Item Name" required validateStatus={errors.itemName ? 'error' : ''} help={errors.itemName?.message}>
+          <Controller
+            name="itemName"
+            control={control}
+            rules={{ required: "Item name is required" }}
+            render={({ field }) => <Input {...field} placeholder="e.g. Margherita Deluxe" />}
+          />
+        </Form.Item>
+
+        <Form.Item label="Description" required validateStatus={errors.description ? 'error' : ''} help={errors.description?.message}>
+          <Controller
+            name="description"
+            control={control}
+            rules={{ required: "Description is required" }}
+            render={({ field }) => <Input.TextArea {...field} rows={3} placeholder="Fresh basil, mozzarella, and tomatoes..." />}
+          />
+        </Form.Item>
+
+        <div style={{ display: 'flex', gap: '20px' }}>
+          <Form.Item label="Item Type" style={{ flex: 1 }} required validateStatus={errors.itemTypeName ? 'error' : ''} help={errors.itemTypeName?.message}>
+            <Controller
+              name="itemTypeName"
+              control={control}
+              rules={{ required: "Item type is required" }}
+              render={({ field }) => (
+                <Select {...field} placeholder="Select type">
+                  {itemTypes.map((type) => (
+                    <Option key={type.itemTypeId} value={type.itemTypeName}>
+                      {type.itemTypeName}
+                    </Option>
+                  ))}
+                </Select>
+              )}
             />
-            {errors.itemName && <span className="error">{errors.itemName.message}</span>}
-          </div>
-        </div>
+          </Form.Item>
 
-        {/* Description */}
-        <div className="form-group">
-          <label htmlFor="description">Description</label>
-          <div className="form-input">
-            <textarea
-              id="description"
-              {...register("description", { required: "Description is required" })}
+          <Form.Item label="Price (₹)" style={{ flex: 1 }} required validateStatus={errors.itemPrice ? 'error' : ''} help={errors.itemPrice?.message}>
+            <Controller
+              name="itemPrice"
+              control={control}
+              rules={{ required: "Price is required", min: 0.01 }}
+              render={({ field }) => <InputNumber {...field} style={{ width: '100%' }} min={0.01} step={0.01} />}
             />
-            {errors.description && <span className="error">{errors.description.message}</span>}
-          </div>
+          </Form.Item>
         </div>
 
-        {/* Item Type */}
-        <div className="form-group">
-          <label htmlFor="itemTypeName">Item Type</label>
-          <div className="form-input">
-            <select
-              id="itemTypeName"
-              {...register("itemTypeName", { required: "Item type is required" })}
-            >
-              <option value="">-- Select Item Type --</option>
-              {itemTypes.map((type) => (
-                <option key={type.itemTypeId} value={type.itemTypeName}>
-                  {type.itemTypeName}
-                </option>
-              ))}
-            </select>
-            {errors.itemTypeName && <span className="error">{errors.itemTypeName.message}</span>}
-          </div>
-        </div>
-
-        {/* Price */}
-        <div className="form-group">
-          <label htmlFor="itemPrice">Price (₹)</label>
-          <div className="form-input">
-            <input
-              type="number"
-              step="0.01"
-              id="itemPrice"
-              {...register("itemPrice", {
-                required: "Price is required",
-                min: { value: 0.01, message: "Price must be greater than 0" },
-                validate: (value) => value > 0 || "Must be a positive number",
-              })}
-            />
-            {errors.itemPrice && <span className="error">{errors.itemPrice.message}</span>}
-          </div>
-        </div>
-
-        {/* Veg / Non-Veg */}
-        <div className="form-group radio-group">
-          <label>Is Veg?</label>
-          <div className="radio-options">
-            <label className="radio-label">
-              <input type="radio" value="1" {...register("isVeg", { required: true })} />
-              Veg
-            </label>
-            <label className="radio-label">
-              <input type="radio" value="0" {...register("isVeg", { required: true })} />
-              Non-Veg
-            </label>
-          </div>
-        </div>
-
-        {/* Image Upload */}
-        <div className="form-group">
-          <label htmlFor="imageUrl">Upload Image</label>
-          <div className="form-input">
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-            />
-            {previewUrl && (
-              <div className="image-preview">
-                <img src={previewUrl} alt="Preview" />
-              </div>
+        <Form.Item label="Dietary Preference">
+          <Controller
+            name="isVeg"
+            control={control}
+            render={({ field }) => (
+              <Radio.Group {...field}>
+                <Radio value={true}>Veg</Radio>
+                <Radio value={false}>Non-Veg</Radio>
+              </Radio.Group>
             )}
-          </div>
-        </div>
+          />
+        </Form.Item>
 
-        {/* Buttons */}
-        <div className="button-group">
-          <button type="submit" className="submit-btn">Submit</button>
-          <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
-        </div>
-      </form>
+        <Form.Item label="Pizza Image">
+          <Upload
+            listType="picture"
+            maxCount={1}
+            customRequest={handleImageUpload}
+            fileList={fileList}
+            onChange={({ fileList }) => setFileList(fileList)}
+          >
+            <Button icon={<UploadOutlined />} loading={uploading}>Click to Upload</Button>
+          </Upload>
+        </Form.Item>
+
+        <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
+          <Space>
+            <Button onClick={onClose}>Cancel</Button>
+            <Button type="primary" htmlType="submit">Add Item</Button>
+          </Space>
+        </Form.Item>
+      </Form>
     </div>
   );
 };

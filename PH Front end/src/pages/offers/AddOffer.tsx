@@ -1,7 +1,13 @@
-import { useForm } from "react-hook-form";
+import React from 'react';
+import { useForm, Controller } from "react-hook-form";
 import type { OfferDTO } from "../../types/interfaces";
 import { addOffer, formatDateTimeLocal } from "../../services/offerService";
 import showNotification from "../../components/Notification/showNotification";
+import { Form, Input, Button, Select, Checkbox, DatePicker, InputNumber, Row, Col, Typography } from "antd";
+import dayjs from "dayjs";
+
+const { Option } = Select;
+const { Title } = Typography;
 
 interface AddOfferProps {
   onClose: () => void;
@@ -9,31 +15,26 @@ interface AddOfferProps {
 }
 
 const AddOffer: React.FC<AddOfferProps> = ({ onClose, setOffers }) => {
-
-  const {
-    register,
-    handleSubmit,
-    watch,
-    formState: { errors },
-    reset,
-  } = useForm<OfferDTO>({
+  const { control, handleSubmit, watch, reset, formState: { errors } } = useForm<any>({
     defaultValues: {
-      id: 0,
-      validFrom: formatDateTimeLocal(new Date()),
-      validTo: formatDateTimeLocal(new Date()),
-      discountType: 'FLAT',
-      isActive: true,
       offerText: '',
-      discountValue: null
-    },
+      discountType: 'FLAT',
+      discountValue: null,
+      validFrom: dayjs(),
+      validTo: dayjs().add(10, 'day'),
+      isActive: true
+    }
   });
 
-  const discountType = watch('discountType');  
+  const discountType = watch('discountType');
   const validFrom = watch('validFrom');
 
-  const onSubmit = async (data: OfferDTO) => {
+  const onSubmit = async (data: any) => {
     const payload = {
       ...data,
+      id: 0,
+      validFrom: data.validFrom ? data.validFrom.format('YYYY-MM-DDTHH:mm') : null,
+      validTo: data.validTo ? data.validTo.format('YYYY-MM-DDTHH:mm') : null,
       discountValue: data.discountType === 'BOGO' ? null : Number(data.discountValue),
     };
 
@@ -43,7 +44,8 @@ const AddOffer: React.FC<AddOfferProps> = ({ onClose, setOffers }) => {
       setOffers((prevOffers) => [...prevOffers, addedOffer]);
 
       reset();
-      onClose(); // Close popup after submission
+      onClose();
+      showNotification.success("Offer Added successfully");
     } catch (error) {
       console.error(error);
       showNotification.error('Error adding offer');
@@ -51,95 +53,101 @@ const AddOffer: React.FC<AddOfferProps> = ({ onClose, setOffers }) => {
   };
 
   return (
-        <div className="form-container">
-          <h2>Add New Offer</h2>
-          <form onSubmit={handleSubmit(onSubmit)}>
-            {/* Offer Text */}
-            <div className="form-group">
-              <label htmlFor="offerText">Offer Name</label>
-              <div className="form-input">
-                <input
-                  type="text"
-                  id="offerText"
-                  placeholder=" "
-                  {...register('offerText', { required: 'Offer name is required' })}
-                />
-                {errors.offerText && <span className="error">{errors.offerText.message}</span>}
-            </div>
-          </div>
+    <div style={{ padding: 20, background: '#fff', borderRadius: 8, maxWidth: 600 }}>
+      <Title level={3} style={{ marginBottom: 20 }}>Add New Offer</Title>
+      <Form layout="vertical" onFinish={handleSubmit(onSubmit)}>
 
-            {/* Discount Type */}
-            <div className="form-group">
-              <label htmlFor="discountType">Discount Type</label>
-              <div className="form-input">
-                 <select id="discountType" {...register('discountType')}>
-                  <option value="" disabled hidden></option>
-                  <option value="BOGO">BOGO</option>
-                  <option value="FLAT">Flat</option>
-                  <option value="PERCENTAGE">Percentage</option>
-              </select>
-              </div>
-            </div>
+        <Row gutter={16}>
+          <Col span={24}>
+            <Form.Item label="Offer Name" validateStatus={errors.offerText ? 'error' : ''} help={errors.offerText?.message as string}>
+              <Controller
+                name="offerText"
+                control={control}
+                rules={{ required: 'Offer name is required' }}
+                render={({ field }) => <Input {...field} placeholder="Enter offer name" />}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
-            {/* Discount Value */}
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Discount Type">
+              <Controller
+                name="discountType"
+                control={control}
+                render={({ field }) => (
+                  <Select {...field}>
+                    <Option value="BOGO">BOGO</Option>
+                    <Option value="FLAT">Flat</Option>
+                    <Option value="PERCENTAGE">Percentage</Option>
+                  </Select>
+                )}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
             {discountType !== 'BOGO' && (
-              <div className="form-group">
-                <label htmlFor="discountValue">Discount Value</label>
-                <div className="form-input">
-                  <input
-                    type="number"
-                    id="discountValue"
-                    placeholder=" "
-                    {...register('discountValue', {
-                      required: 'Discount value is required',
-                      min: { value: 0.01, message: 'Must be greater than 0' },
-                    })}
-                  />
-                  {errors.discountValue && <span className="error">{errors.discountValue.message}</span>}
-                </div>
-               </div>
+              <Form.Item label="Discount Value" validateStatus={errors.discountValue ? 'error' : ''} help={errors.discountValue?.message as string}>
+                <Controller
+                  name="discountValue"
+                  control={control}
+                  rules={{
+                    required: 'Discount value is required',
+                    min: { value: 0.01, message: 'Must be greater than 0' }
+                  }}
+                  render={({ field }) => <InputNumber {...field} style={{ width: '100%' }} min={0} />}
+                />
+              </Form.Item>
             )}
+          </Col>
+        </Row>
 
-            {/* Valid From */}
-            <div className="form-group">
-              <label htmlFor="validFrom">Valid From</label>
-              
-              <div className="form-input">
-                <input type="datetime-local" id="validFrom" placeholder=" " {...register("validFrom", { required: true })} />
-                {errors.validFrom && <span className="error">{errors.validFrom.message}</span>}
-              </div>
-            </div>
+        <Row gutter={16}>
+          <Col span={12}>
+            <Form.Item label="Valid From" validateStatus={errors.validFrom ? 'error' : ''} help={errors.validFrom?.message as string}>
+              <Controller
+                name="validFrom"
+                control={control}
+                rules={{ required: 'Starting date is required' }}
+                render={({ field }) => <DatePicker {...field} showTime format="YYYY-MM-DD HH:mm" style={{ width: '100%' }} />}
+              />
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Valid To" validateStatus={errors.validTo ? 'error' : ''} help={errors.validTo?.message as string}>
+              <Controller
+                name="validTo"
+                control={control}
+                rules={{
+                  required: 'Ending date is required',
+                  validate: (val) => !val || !validFrom || val.isAfter(validFrom) || 'Must be after start date'
+                }}
+                render={({ field }) => <DatePicker {...field} showTime format="YYYY-MM-DD HH:mm" style={{ width: '100%' }} />}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
-            {/* Valid To */}
-            <div className="form-group">
-              <label htmlFor="validTo">Valid To</label>
-              <div className="form-input">
-                <input type="datetime-local" id="validTo" placeholder=" " {...register("validTo", {
-                    required: true,
-                    validate: (toValue) => {
-                      if (!validFrom || !toValue) return true;
-                      return new Date(validFrom) < new Date(toValue)
-                      || "Valid To must be after Valid From";
-                  }
-                })} />
-                {errors.validTo && <span className="error">{errors.validTo.message}</span>}
-              </div>
-            </div>
+        <Row>
+          <Col span={24}>
+            <Form.Item>
+              <Controller
+                name="isActive"
+                control={control}
+                render={({ field }) => <Checkbox checked={field.value} {...field}>Is Active?</Checkbox>}
+              />
+            </Form.Item>
+          </Col>
+        </Row>
 
-            {/* Is Active */}
-            <div className="form-group">
-              <label htmlFor="isActive">Is Active?</label>
-              <div className="form-input" style={{textAlign: "justify"}}>
-                <input type="checkbox" id="isActive" {...register('isActive')} />
-              </div>
-            </div>
-            {/* Buttons */}
-            <div className="button-group">
-              <button type="submit" className="submit-btn">Submit</button>
-              <button type="button" className="cancel-btn" onClick={onClose}>Cancel</button>
-            </div>
-          </form>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 10 }}>
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="primary" htmlType="submit">Submit</Button>
         </div>
+
+      </Form>
+    </div>
   );
 };
 

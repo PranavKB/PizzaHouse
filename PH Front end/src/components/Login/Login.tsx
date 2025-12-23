@@ -1,23 +1,24 @@
 import React, { useState } from 'react';
-import styles from './Login.module.scss';
+// import styles from './Login.module.scss'; // Removing custom styles
 import { loginUser } from '../../services/authService';
 import { useNavigate } from 'react-router-dom';
 import type { LoginPageProps } from '../../types/interfaces';
 import { useAuth } from '../../context/AuthContext';
+import { Form, Input, Button, Card, Typography, Alert } from 'antd';
+import { UserOutlined, LockOutlined } from '@ant-design/icons';
 
+const { Title, Text } = Typography;
 
 const Login: React.FC<LoginPageProps> = () => {
-  const navigate = useNavigate(); //  Add this
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const { setIsAuthenticated, setUser } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onFinish = async (values: any) => {
     setError(null);
     setLoading(true);
+    const { email, password } = values;
 
     try {
       const response = await loginUser({ email, password });
@@ -26,7 +27,7 @@ const Login: React.FC<LoginPageProps> = () => {
       localStorage.setItem('user', JSON.stringify(response.user));
       setUser(response.user);
       setIsAuthenticated(true);
-      if (response.user.role == 'Customer') {
+      if (response.user.role === 'Customer') {
         navigate('/menu');
       } else {
         navigate('/item-list');
@@ -38,34 +39,70 @@ const Login: React.FC<LoginPageProps> = () => {
     }
   };
 
-  const handleRegister = () =>{
+  const handleRegister = () => {
     navigate('/register');
-  }
+  };
 
-  const handleForgotPassword = () =>{
+  const handleForgotPassword = () => {
     navigate('/forgot-password');
-  }
+  };
 
   return (
-    <div className={styles.loginContainer}>
-      <form className={styles.loginForm} onSubmit={handleSubmit}>
-        <h2>Login to Order Pizza</h2>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#fff7e6' }}>
+      <Card
+        style={{ width: 400, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderColor: '#ffa940' }}
+        title={<Title level={3} style={{ textAlign: 'center', margin: 0, color: '#d46b08' }}>Login</Title>}
+      >
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <Title level={4}>PizzaHouse</Title>
+          <Text type="secondary">Welcome back! Please login to your account.</Text>
+        </div>
 
-        {error && <p className={styles.error}>{error}</p>}
+        {error && (
+          <Alert message={error} type="error" showIcon style={{ marginBottom: 16 }} />
+        )}
 
-        <label>Email</label>
-        <input type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <Form
+          name="normal_login"
+          className="login-form"
+          initialValues={{ remember: true }}
+          onFinish={onFinish}
+          layout="vertical"
+          size="large"
+        >
+          <Form.Item
+            name="email"
+            rules={[{ required: true, message: 'Please input your Email!' }, { type: 'email', message: 'Please enter a valid email!' }]}
+          >
+            <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Email" />
+          </Form.Item>
+          <Form.Item
+            name="password"
+            rules={[{ required: true, message: 'Please input your Password!' }]}
+          >
+            <Input.Password
+              prefix={<LockOutlined className="site-form-item-icon" />}
+              type="password"
+              placeholder="Password"
+            />
+          </Form.Item>
+          {/* <Form.Item>
+            <Form.Item name="remember" valuePropName="checked" noStyle>
+              <Checkbox>Remember me</Checkbox>
+            </Form.Item>
+          </Form.Item> */}
 
-        <label>Password</label>
-        <input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-        <div className={styles.forgotPassword} onClick={handleForgotPassword}><span>Forgot Password?</span></div>
-        <div className={styles.registerUser} onClick={handleRegister}><span>New User? Register</span></div>
-      </form>
-      
+          <Form.Item>
+            <Button type="primary" htmlType="submit" className="login-form-button" block loading={loading}>
+              Log in
+            </Button>
+          </Form.Item>
+          <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <a onClick={handleForgotPassword}>Forgot Password?</a>
+            <a onClick={handleRegister}>Register now!</a>
+          </div>
+        </Form>
+      </Card>
     </div>
   );
 };

@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { OfferDTO } from '../../types/interfaces';
-import '../../styles/modal.scss';
-import { convertToUIDateTime } from '../../services/offerService';
 import { useItemsContext } from '../../context/ItemsContext';
+import { Modal, Select, Table, Checkbox, Tag } from 'antd';
+import { convertToUIDateTime } from '../../services/offerService';
+
+const { Option } = Select;
 
 interface Props {
   isOpen: boolean;
@@ -13,96 +15,117 @@ interface Props {
   initialOfferIds?: number[];
 }
 
+const EMPTY_ARRAY: number[] = [];
+
 const MapItemOfferModal: React.FC<Props> = ({
   isOpen,
   onClose,
   offers,
   onSave,
   initialItemId = 0,
-  initialOfferIds = []
+  initialOfferIds = EMPTY_ARRAY
 }) => {
   const [selectedItemId, setSelectedItemId] = useState<number | undefined>(initialItemId);
   const [selectedOfferIds, setSelectedOfferIds] = useState<number[]>(initialOfferIds);
   const { items } = useItemsContext();
 
-  const handleOfferChange = (offerId: number) => {
+  useEffect(() => {
+    if (isOpen) {
+      setSelectedItemId(initialItemId);
+      setSelectedOfferIds(initialOfferIds);
+    }
+  }, [initialItemId, initialOfferIds, isOpen]);
+
+  const handleOfferChange = (offerId: number, checked: boolean) => {
     setSelectedOfferIds(prev =>
-      prev.includes(offerId)
-        ? prev.filter(id => id !== offerId)
-        : [...prev, offerId]
+      checked ? [...prev, offerId] : prev.filter(id => id !== offerId)
     );
   };
 
-  const handleItemSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedItemId(parseInt(e.target.value));
-  }
-
-  const handleSubmit = () => {
+  const handleManualSave = () => {
     if (selectedItemId) {
       onSave(selectedItemId, selectedOfferIds);
       onClose();
     }
   };
 
-  if (!isOpen) return null;
+  const columns = [
+    {
+      title: 'Select',
+      key: 'select',
+      width: 50,
+      render: (_: any, record: OfferDTO) => (
+        <Checkbox
+          checked={selectedOfferIds.includes(record.id)}
+          onChange={(e) => handleOfferChange(record.id, e.target.checked)}
+        />
+      )
+    },
+    {
+      title: 'Offer Text',
+      dataIndex: 'offerText',
+      key: 'offerText'
+    },
+    {
+      title: 'Type',
+      dataIndex: 'discountType',
+      key: 'discountType',
+      render: (type: string) => <Tag>{type}</Tag>
+    },
+    {
+      title: 'Valid From',
+      dataIndex: 'validFrom',
+      key: 'validFrom',
+      render: (date: any) => <span style={{ fontSize: '0.85em' }}>{convertToUIDateTime(date)}</span>
+    },
+    {
+      title: 'Valid To',
+      dataIndex: 'validTo',
+      key: 'validTo',
+      render: (date: any) => <span style={{ fontSize: '0.85em' }}>{convertToUIDateTime(date)}</span>
+    },
+  ];
 
   return (
-    <div className="modal-overlay modal-backdrop">
-      <div className="modal-content">
-        <div>
-        <h2>Map Items to Offers</h2>
-
-        <div>
-          <label>Select Item:</label>
-          <select
-            value={selectedItemId ?? ''}
-            onChange={handleItemSelect}
-          >
-            <option value="" disabled>Select an item</option>
-            {items.map(item => (
-              <option key={item.itemId} value={item.itemId}>
-                {item.itemName}
-              </option>
-            ))}
-          </select>
-        </div>
-        </div>
-        <div className="table-list-container">
-          <div className="table-list-header">
-            <div className="table-cell "></div>
-            <div className="table-cell">Offer Text</div>
-            <div className="table-cell">Discount Type</div>
-            <div className="table-cell">valid From</div>
-            <div className="table-cell">valid To</div>
-          </div>
-          {offers.map(offer => (
-            <div className="table-list-row" key={offer.id}>
-              <div className="table-cell">
-                <input
-                  type="checkbox"
-                  id={`offer-${offer.id}`}
-                  checked={selectedOfferIds.includes(offer.id)}
-                  onChange={() => handleOfferChange(offer.id)}
-                />
-              </div>
-              <div className="table-cell">
-                <label htmlFor={`offer-${offer.id}`}>
-                  {offer.offerText}
-                </label>
-              </div>
-              <div className="table-cell">{offer.discountType}</div>
-              <div className="table-cell">{convertToUIDateTime(offer.validFrom)}</div>
-              <div className="table-cell">{convertToUIDateTime(offer.validTo)}</div>
-            </div>
+    <Modal
+      title="Map Items to Offers"
+      open={isOpen}
+      onCancel={onClose}
+      width={800}
+      onOk={handleManualSave}
+      okText="Save Mapping"
+      okButtonProps={{ disabled: !selectedItemId }}
+    >
+      <div style={{ marginBottom: 16 }}>
+        <span style={{ marginRight: 8 }}>Select Item:</span>
+        <Select
+          showSearch
+          style={{ width: 300 }}
+          placeholder="Select a pizza item"
+          optionFilterProp="children"
+          value={selectedItemId || undefined} // Antd Select needs undefined for empty
+          onChange={(val) => setSelectedItemId(val)}
+          filterOption={(input, option) =>
+            (option?.children as unknown as string).toLowerCase().includes(input.toLowerCase())
+          }
+        >
+          {items.map(item => (
+            <Option key={item.itemId} value={item.itemId}>
+              {item.itemName}
+            </Option>
           ))}
-        </div>
-
-        <div className='button-group' style={{ marginTop: '1rem' }}>
-          <button onClick={handleSubmit} className='submit-btn'>Save Mapping</button>
-          <button onClick={onClose} className='cancel-btn'>Cancel</button>
-        </div>
+        </Select>
       </div>
-    </div>
+
+      <Table
+        dataSource={offers}
+        columns={columns}
+        rowKey="id"
+        pagination={{ pageSize: 5 }}
+        size="small"
+        scroll={{ y: 300 }}
+      />
+    </Modal>
   );
 };
 

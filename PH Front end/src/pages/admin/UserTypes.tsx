@@ -1,69 +1,81 @@
 import { useEffect, useState } from "react";
-import '../../styles/table.scss';
 import showNotification from "../../components/Notification/showNotification";
 import { getUserTypes } from "../../services/itemService";
 import type { MenuProps, UserType } from "../../types/interfaces";
-import { useNavigate } from 'react-router-dom';
-import { LogoutButton } from "../LogoutButton";
 import { useItemsContext } from "../../context/ItemsContext";
+import { Table, Typography, Card, Tag } from "antd";
+import { UsergroupAddOutlined } from '@ant-design/icons';
+
+const { Title } = Typography;
 
 const UserTypes: React.FC<MenuProps> = () => {
-    const [userTypes, setUserTypes] = useState<UserType[]>([]);
-    const navigate = useNavigate();
-    const { setLoading } = useItemsContext();
-  useEffect(() => {
-      const fetchUserTypes = async () => {
-        try {
-          setLoading(true);
-          const response = await getUserTypes();
-          setUserTypes(response);
-        } catch (err: any) {
-          showNotification.error('Failed to load user types.');
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      };   
-  
-      fetchUserTypes();
-    }, []);
+  const [userTypes, setUserTypes] = useState<UserType[]>([]);
+  const { setLoading, loading } = useItemsContext();
 
-    const redirectToOffers = () => {
-        navigate('/offers');
+  useEffect(() => {
+    const fetchUserTypes = async () => {
+      try {
+        setLoading(true);
+        const response = await getUserTypes();
+        setUserTypes(response);
+      } catch (err: any) {
+        showNotification.error('Failed to load user types.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
     };
 
+    fetchUserTypes();
+  }, []);
+
+  const columns = [
+    {
+      title: 'Name',
+      dataIndex: 'name',
+      key: 'name',
+      sorter: (a: UserType, b: UserType) => a.name.localeCompare(b.name),
+      render: (text: string) => <span style={{ fontWeight: 500 }}>{text}</span>
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+    },
+    {
+      title: 'ID',
+      dataIndex: 'id',
+      key: 'id',
+      width: 80,
+      render: (id: number) => <Tag>{id}</Tag>
+    }
+  ];
+
   return (
-        <div className="header-class">
-            
-                <>
-                    <div className="sticky-header">
-                        <h1>User Types</h1>
+    <div>
+      <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
+        <Title level={2} style={{ margin: 0 }}>
+          <UsergroupAddOutlined style={{ marginRight: 10, color: '#fa8c16' }} />
+          User Types
+        </Title>
+      </div>
 
-                        <div className="header-bar">
-                            <div className="header-info">
-                                <button onClick={redirectToOffers}>Offers</button>
-                            </div>
-                            <LogoutButton />
-                        </div>
-                    </div>
-                    <div className="table-list-container">
-                        <div className="table-list-header">
-                        <div className="table-cell">Name</div>
-                        <div className="table-cell">Description</div>
-                        </div>
-                        {userTypes.map(userType => (
-                        <div className="table-list-row" key={userType.id}>
-                          <div className="table-cell">{userType.name}</div>
-                          <div className="table-cell">{userType.description}</div>
-                        </div>
-                      ))}
-                    </div>
-                </>
-            
-
-            
-        </div>
-
+      <Card bordered={false} className="shadow-sm">
+        <Table
+          columns={columns}
+          dataSource={userTypes}
+          rowKey="id"
+          pagination={{
+            pageSize: 5,
+            hideOnSinglePage: true,
+            position: ['bottomRight']
+          }}
+          loading={loading}
+          bordered
+          size="middle"
+        />
+      </Card>
+    </div>
   )
 }
 

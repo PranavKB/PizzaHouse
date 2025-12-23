@@ -16,6 +16,7 @@ import Offers from './pages/offers/Offers';
 import ItemOfferMapper from './pages/offers/ItemOfferMapper';
 import PrevOrders from './pages/PrevOrders';
 import ItemList from './pages/admin/itemList/ItemList';
+import MainLayout from './components/MainLayout';
 
 const AuthenticatedApp: React.FC = () => {
   const { isAuthenticated, user } = useAuth();
@@ -28,17 +29,19 @@ const AuthenticatedApp: React.FC = () => {
   return (
     <CartProvider>
       <ItemsProvider>
-        <Routes>
-          <Route path="/" element={isAdmin ? <Navigate to="/item-list" /> : <Navigate to="/menu" />} />
-          <Route path="/menu" element={isCustomer ? <ItemMenu /> : <Navigate to="/login" />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
-          <Route path="/userTypes" element={isAdmin ? <UserTypes /> : <Navigate to="/login" />} />
-          <Route path="/offers" element={isAdmin ? <Offers /> : <Navigate to="/login" />} />
-          <Route path="/item-offer-mapper" element={isAdmin ? <ItemOfferMapper /> : <Navigate to="/login" />} />
-          <Route path="/item-list" element={isAdmin ? <ItemList /> : <Navigate to="/login" />} />
-          <Route path="/order-history" element={isCustomer ? <PrevOrders /> : <Navigate to="/login" />} />
-          <Route path="*" element={isAdmin ? <Navigate to="/item-list" /> : <Navigate to="/menu" />}  />
-        </Routes>
+        <MainLayout>
+          <Routes>
+            <Route path="/" element={isAdmin ? <Navigate to="/item-list" /> : <Navigate to="/menu" />} />
+            <Route path="/menu" element={isCustomer ? <ItemMenu /> : <Navigate to="/login" />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/userTypes" element={isAdmin ? <UserTypes /> : <Navigate to="/login" />} />
+            <Route path="/offers" element={isAdmin ? <Offers /> : <Navigate to="/login" />} />
+            <Route path="/item-offer-mapper" element={isAdmin ? <ItemOfferMapper /> : <Navigate to="/login" />} />
+            <Route path="/item-list" element={isAdmin ? <ItemList /> : <Navigate to="/login" />} />
+            <Route path="/order-history" element={isCustomer ? <PrevOrders /> : <Navigate to="/login" />} />
+            <Route path="*" element={isAdmin ? <Navigate to="/item-list" /> : <Navigate to="/menu" />} />
+          </Routes>
+        </MainLayout>
       </ItemsProvider>
     </CartProvider>
   );

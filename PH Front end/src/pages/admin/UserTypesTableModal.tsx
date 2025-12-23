@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import type { UserType } from '../../types/interfaces';
-import '../../styles/modal.scss';
 import { getUserTypes } from '../../services/itemService';
 import showNotification from '../../components/Notification/showNotification';
 import { useItemsContext } from '../../context/ItemsContext';
+import { Modal, Table } from 'antd';
 
 interface Props {
   isOpen: boolean;
@@ -14,56 +14,57 @@ const UserTypesTableModal: React.FC<Props> = ({
   isOpen,
   onClose
 }) => {
-
   const { setLoading } = useItemsContext();
-    const [userTypes, setUserTypes] = useState<UserType[]>([]);
+  const [userTypes, setUserTypes] = useState<UserType[]>([]);
 
+  useEffect(() => {
+    if (!isOpen) return;
 
-    useEffect(() => {
+    const fetchUserTypes = async () => {
+      try {
         setLoading(true);
-      const fetchUserTypes = async () => {
-        try {
-          const response = await getUserTypes();
-          setUserTypes(response);
-        } catch (err: any) {
-          showNotification.error('Failed to load user types.');
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      };   
-  
-      fetchUserTypes();
-    }, []);
+        const response = await getUserTypes();
+        setUserTypes(response);
+      } catch (err: any) {
+        showNotification.error('Failed to load user types.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
+    fetchUserTypes();
+  }, [isOpen, setLoading]);
 
-  if (!isOpen) return null;
+  const columns = [
+    {
+      title: 'User Type Name',
+      dataIndex: 'name',
+      key: 'name',
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+    }
+  ];
 
   return (
-    <div className="modal-overlay modal-backdrop">
-      <div className="modal-content">
-        <h2> User Types Table</h2>
-
-        <div className="table-list-container">
-                <div className="table-list-header">
-                    <div className="table-cell">User Type Name</div>
-                    <div className="table-cell">Description</div>
-                </div>
-                {userTypes.map(userType => (
-                        <div className="table-list-row" key={userType.id}>
-                          <div className="table-cell">{userType.name}</div>
-                          <div className="table-cell">{userType.description}</div>
-                        </div>
-                      ))}
-        
-
-        </div>
-
-        <div className="button-group" >
-          <button className='cancel-btn' onClick={onClose} >Cancel</button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      title="User Types Table"
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={600}
+    >
+      <Table
+        dataSource={userTypes}
+        columns={columns}
+        rowKey="id"
+        pagination={{ pageSize: 5 }}
+        size="small"
+      />
+    </Modal>
   );
 };
 

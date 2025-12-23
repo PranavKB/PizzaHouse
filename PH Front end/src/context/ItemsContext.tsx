@@ -1,5 +1,5 @@
 // src/context/ItemsContext.tsx
-import React, { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback, useMemo, type ReactNode } from 'react';
 import type { ItemDTO } from '../types/interfaces';
 import { getItemsDTO } from '../services/itemService';
 import { useAuth } from './AuthContext';
@@ -28,9 +28,9 @@ export const ItemsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [loading, setLoading] = useState(true);
   const [loadingMessage, setLoadingMessage] = useState('Loading ...');
   const [error, setError] = useState<string | null>(null);
-    const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useAuth();
 
-  const fetchItems = async () => {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -41,8 +41,7 @@ export const ItemsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } finally {
       setLoading(false);
     }
-  };
-
+  }, []);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -50,10 +49,20 @@ export const ItemsProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     } else {
       setItems([]); // clear items on logout
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, fetchItems]);
+
+  const value = useMemo(() => ({
+    items,
+    loading,
+    error,
+    refreshItems: fetchItems,
+    setItems,
+    setLoading,
+    setLoadingMessage
+  }), [items, loading, error, fetchItems]);
 
   return (
-    <ItemsContext.Provider value={{ items, loading, error, refreshItems: fetchItems, setItems, setLoading, setLoadingMessage }}>
+    <ItemsContext.Provider value={value}>
       <LoadingModal show={loading} message={loadingMessage} />
       {children}
     </ItemsContext.Provider>

@@ -112,8 +112,8 @@ export const useCart = (): CartContextType => {
 export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [cartOrderId, setCartOrderId] = useState<number>(0);
-    const [quantities, setQuantities] = useState<Record<number, number>>({});
-    const [visibleCounters, setVisibleCounters] = useState<Set<number>>(new Set());
+  const [quantities, setQuantities] = useState<Record<number, number>>({});
+  const [visibleCounters, setVisibleCounters] = useState<Set<number>>(new Set());
 
   const addToCart = (item: ItemDTO, quantity = 1) => {
     setCart((prev) => {
@@ -143,26 +143,26 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setVisibleCounters(new Set());
   };
 
+  const value = React.useMemo(() => ({
+    cart,
+    setCart,
+    addToCart,
+    decrementItem,
+    clearCart,
+    isOfferActiveFn,
+    getBestOffer,
+    getDiscountedPrice,
+    applyAllActiveOffers,
+    cartOrderId,
+    setCartOrderId,
+    quantities,
+    setQuantities,
+    visibleCounters,
+    setVisibleCounters,
+  }), [cart, cartOrderId, quantities, visibleCounters]);
+
   return (
-    <CartContext.Provider
-      value={{
-        cart,
-        setCart,
-        addToCart,
-        decrementItem,
-        clearCart,
-        isOfferActiveFn,
-        getBestOffer,
-        getDiscountedPrice,
-        applyAllActiveOffers,
-        cartOrderId,
-        setCartOrderId,
-        quantities,
-        setQuantities,
-        visibleCounters,
-        setVisibleCounters,
-      }}
-    >
+    <CartContext.Provider value={value}>
       {children}
     </CartContext.Provider>
   );

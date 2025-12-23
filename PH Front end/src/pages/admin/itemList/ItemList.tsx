@@ -1,13 +1,18 @@
 import React, { useEffect, useState } from 'react';
-import '../../../styles/admin/itemList.scss';
+// import '../../../styles/admin/itemList.scss'; // Removing custom styles
 import type { ItemDTO, MenuProps, OfferDTO } from '../../../types/interfaces';
 import showNotification from '../../../components/Notification/showNotification';
 import { useNavigate } from 'react-router-dom';
-import { LogoutButton } from '../../LogoutButton';
+// import { LogoutButton } from '../../LogoutButton'; // Removed
 import MapItemOfferModal from '../MapItemOfferModal';
 import { getOffersDTO, mapItemToOffers } from '../../../services/offerService';
 import AddNewItem from './AddNewItem';
 import { useItemsContext } from '../../../context/ItemsContext';
+import { Table, Button, Space, Tag, Modal, Typography } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import { PlusOutlined } from '@ant-design/icons';
+
+const { Title } = Typography;
 
 const ItemList: React.FC<MenuProps> = () => {
   const [offers, setOffers] = useState<OfferDTO[]>([]);
@@ -20,129 +25,150 @@ const ItemList: React.FC<MenuProps> = () => {
 
   useEffect(() => {
     const fetchOffers = async () => {
-        try {
-          setLoading(true);
-          const response = await getOffersDTO();
-          setOffers(response);
-        } catch (err: any) {
-          showNotification.error('Failed to load offers.');
-          console.error(err);
-        } finally {
-          setLoading(false);
-        }
-      };
+      try {
+        setLoading(true);
+        const response = await getOffersDTO();
+        setOffers(response);
+      } catch (err: any) {
+        showNotification.error('Failed to load offers.');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchOffers();
   }, []);
 
-  const handleOnSelectItem = (item: ItemDTO) => () => {
+  const handleOnSelectItem = (item: ItemDTO) => {
     setSelectedItem(item);
     setIsMapOfferOpen(true);
   };
 
   const redirectToOffers = () => {
-        navigate('/offers');
-    };
+    navigate('/offers');
+  };
 
-    const handleOfferMapping = (item: ItemDTO) => {
-        var res = '';
-        if(item.offers?.length > 0) {
-            for (const offer of item.offers) {
-                res = res + offer.offerText + ', ';
-            }
-        return res == '' ? 'No offers' : res;
-    };
-    return 'No offers';
+  const handleOfferMapping = (item: ItemDTO) => {
+    var res = '';
+    if (item.offers?.length > 0) {
+      for (const offer of item.offers) {
+        res = res + offer.offerText + ', ';
+      }
+    }
+    return res === '' ? 'No offers' : res;
   };
 
   const handleSaveMapItems = async (itemId: number, offerIds: number[]) => {
-          await mapItemToOffers(itemId, offerIds);
-          const updatedItems = items.map(item => {
-            if (item.itemId === itemId) {
-              return {
-                ...item,
-                offers: offers.filter(offer => offerIds.includes(offer.id))
-              };
-            }
-            return item;
-          });
-          setItems(updatedItems);
-      };
+    await mapItemToOffers(itemId, offerIds);
+    const updatedItems = items.map(item => {
+      if (item.itemId === itemId) {
+        return {
+          ...item,
+          offers: offers.filter(offer => offerIds.includes(offer.id))
+        };
+      }
+      return item;
+    });
+    setItems(updatedItems);
+  };
+
+  const columns: ColumnsType<ItemDTO> = [
+    {
+      title: '#',
+      key: 'index',
+      render: (_: any, __: any, index: number) => index + 1,
+      width: 50,
+    },
+    {
+      title: 'Name',
+      dataIndex: 'itemName',
+      key: 'itemName',
+      sorter: (a, b) => a.itemName.localeCompare(b.itemName),
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      ellipsis: true,
+    },
+    {
+      title: 'Price',
+      dataIndex: 'itemPrice',
+      key: 'itemPrice',
+      render: (price: number) => `₹${price}`,
+      sorter: (a, b) => a.itemPrice - b.itemPrice,
+    },
+    {
+      title: 'Type',
+      dataIndex: 'itemTypeName',
+      key: 'itemTypeName',
+    },
+    {
+      title: 'Veg/Non-Veg',
+      dataIndex: 'isVeg',
+      key: 'isVeg',
+      render: (isVeg: boolean) => (
+        <Tag color={isVeg ? 'green' : 'red'}>
+          {isVeg ? 'Veg' : 'Non-Veg'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Offers',
+      key: 'offers',
+      render: (_, record) => (
+        <Button type="link" onClick={() => handleOnSelectItem(record)}>
+          {handleOfferMapping(record)}
+        </Button>
+      ),
+    }
+  ];
 
   return (
-<>
-    <div className="header-class">
-                
-                    <>
-                        <div className="sticky-header">
-                            <h1>Items</h1>
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <Title level={2} style={{ margin: 0 }}>Item List</Title>
+        <Space>
+          <Button onClick={redirectToOffers}>Manage Offers</Button>
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsAddItemOpen(true)}>Add Item</Button>
+        </Space>
+      </div>
 
-                            <div className="header-bar">
-                                <div className="header-info">
-                                    <button onClick={redirectToOffers}>Offers</button>
-                                    <button onClick={() => setIsAddItemOpen(true)}>Add Item</button>
-                                </div>
-                                <LogoutButton/>
-                                </div>
-                        </div>
-                        <div className="table-list-container">
-                            <div className="table-list-header">
-                                <div className="table-cell">#</div>
-                              <div className="table-cell">Name</div>
-                              <div className="table-cell">Description</div>
-                              <div className="table-cell">Price</div>
-                              <div className="table-cell">Type</div>
-                              <div className="table-cell">Veg/Non-Veg</div>
-                              <div className="table-cell">Offers</div>
-                            </div>
-                            {items.map((item, index) => (
-                            <div  key={item.itemId} 
-                                  className={`table-list-row clickable-row ${selectedItem?.itemId === item.itemId ? 'selected' : ''}`}
-                            >
-                              <div className="table-cell">{index + 1}</div>
-                              <div className="table-cell">{item.itemName}</div>
-                              <div className="table-cell">{item.description}</div>
-                              <div className="table-cell">{item.itemPrice}</div>
-                              <div className="table-cell">{item.itemTypeName}</div>
-                              <div className={`table-cell ${item.isVeg ? 'veg' : 'non-veg'}`}>
-                                {item.isVeg ? 'Veg' : 'Non-Veg'}
-                              </div>
-                              <div className="table-cell link-cell" 
-                                  onClick={handleOnSelectItem(item)}
-                                  >{handleOfferMapping(item)}</div>
-                            </div>
-                          ))}
-                        </div>
-                    </>
-                
-    
-                
-            </div>
+      <Table
+        columns={columns}
+        dataSource={items}
+        rowKey="itemId"
+        pagination={{
+          pageSize: 10,
+          showSizeChanger: false,
+          position: ['bottomRight']
+        }}
+        bordered
+        size="middle"
+        scroll={{ x: 'max-content', y: 'calc(100vh - 300px)' }}
+      />
 
-            {isMapOfferOpen && (
-              <MapItemOfferModal
-                isOpen={true}
-                onClose={() => setIsMapOfferOpen(false)}
-                offers={offers}
-                onSave={handleSaveMapItems}
-                initialItemId={selectedItem?.itemId || 0}
-                initialOfferIds={selectedItem?.offers?.map(offer => offer.id) || []}
-              />
-            )}
+      <MapItemOfferModal
+        isOpen={isMapOfferOpen}
+        onClose={() => setIsMapOfferOpen(false)}
+        offers={offers}
+        onSave={handleSaveMapItems}
+        initialItemId={selectedItem?.itemId || 0}
+        initialOfferIds={selectedItem?.offers?.map(offer => offer.id) || []}
+      />
 
-            {isAddItemOpen && (
-              <div className="modal-backdrop">
-                  <div className="modal-content">
-                    <AddNewItem onClose={() => setIsAddItemOpen(false)} setItems={setItems} />
-                  </div>
-                  </div>
-            )}
-
-
-</>
-
-
-    )
+      <Modal
+        open={isAddItemOpen}
+        onCancel={() => setIsAddItemOpen(false)}
+        footer={null}
+        width={700}
+        destroyOnClose
+      >
+        <AddNewItem onClose={() => setIsAddItemOpen(false)} setItems={setItems} />
+      </Modal>
+    </div>
+  );
 }
 
 export default ItemList;

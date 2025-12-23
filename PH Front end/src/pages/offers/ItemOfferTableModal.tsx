@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import type { OfferDTO } from '../../types/interfaces';
-import '../../styles/modal.scss';
 import { useItemsContext } from '../../context/ItemsContext';
+import { Modal, Table, Tag } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
 
 interface Props {
   isOpen: boolean;
@@ -16,56 +17,60 @@ const ItemOfferTableModal: React.FC<Props> = ({
   offers,
   itemOfferMap
 }) => {
-
   const { items } = useItemsContext();
-const offerIdMap: Record<number, OfferDTO> = Array.isArray(offers)
-  ? offers.reduce((map, offer) => {
+
+  const offerIdMap: Record<number, OfferDTO> = useMemo(() => Array.isArray(offers)
+    ? offers.reduce((map, offer) => {
       map[offer.id] = offer;
       return map;
     }, {} as Record<number, OfferDTO>)
-  : {};
+    : {}, [offers]);
 
-  const handleOfferMapping = (itemId: number) => {
-    var res = '';
-    if (itemOfferMap[itemId]?.length > 0) {
-        for (const offerId of itemOfferMap[itemId]) {
-            res = res + offerIdMap[offerId]?.offerText + ', ';
-        }
+  const columns: ColumnsType<any> = [
+    {
+      title: 'Item Name',
+      dataIndex: 'itemName',
+      key: 'itemName',
+      width: '30%',
+      render: (text) => <span style={{ fontWeight: 500 }}>{text}</span>
+    },
+    {
+      title: 'Offers',
+      key: 'offers',
+      render: (_, record) => {
+        const mappedOfferIds = itemOfferMap[record.itemId] || [];
+        if (mappedOfferIds.length === 0) return <span style={{ color: '#999' }}>No offers</span>;
+
+        return (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {mappedOfferIds.map(offerId => {
+              const offer = offerIdMap[offerId];
+              return offer ? (
+                <Tag color="cyan" key={offerId}>{offer.offerText}</Tag>
+              ) : null;
+            })}
+          </div>
+        )
+      }
     }
-    return res == '' ? 'No offers' : res;
-  };
-
-  if (!isOpen) return null;
+  ];
 
   return (
-    <div className="modal-overlay modal-backdrop">
-      <div className="modal-content">
-        <h2> Item Offers Table</h2>
-
-        <div className="table-list-container">
-                <div className="table-list-header">
-                    <div className="table-cell">Item Name</div>
-                    <div className="table-cell">Offers</div>
-                </div>
-        
-
-        {items?.map(item => (
-            <div className="table-list-row" key={item.itemId}>
-                <div className="table-cell">{item.itemName}</div>
-                <div className="table-cell">
-                {}
-                    {handleOfferMapping(item.itemId)}
-                </div>
-            </div>
-            ))}
-
-        </div>
-
-        <div className='button-group' >
-          <button onClick={onClose} className='cancel-btn'>Cancel</button>
-        </div>
-      </div>
-    </div>
+    <Modal
+      title="Item Offers Table"
+      open={isOpen}
+      onCancel={onClose}
+      footer={null}
+      width={700}
+    >
+      <Table
+        columns={columns}
+        dataSource={items}
+        rowKey="itemId"
+        pagination={{ pageSize: 5 }}
+        size="small"
+      />
+    </Modal>
   );
 };
 

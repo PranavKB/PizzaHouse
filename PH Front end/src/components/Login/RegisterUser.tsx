@@ -1,129 +1,20 @@
 import React, { useState } from 'react';
-import styles from './Login.module.scss';
+// import styles from './Login.module.scss'; // Removing custom styles
 import { useNavigate } from 'react-router-dom';
 import { registerUser } from '../../services/authService';
 import showNotification from '../Notification/showNotification';
 import type { RegisterPayload } from '../../types/authTypes';
+import { Form, Input, Button, Card, Typography, Row, Col } from 'antd';
+import { UserOutlined, MailOutlined, PhoneOutlined, LockOutlined, HomeOutlined, NumberOutlined } from '@ant-design/icons';
 
-type FormData = {
-  fullName: string;
-  userName: string;
-  phone: string;
-  address: string;
-  city: string;
-  state: string;
-  pinCode: string;
-  email: string;
-  password: string;
-};
-
-type FormErrors = {
-  fullName?: string;
-  userName?: string;
-  phone?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  pinCode?: string;
-  email?: string;
-  password?: string;
-};
-
-type FormField = {
-  label: string;
-  name: Extract<keyof FormData, keyof FormErrors>;   // <-- name must be a key of FormData
-  type: string;
-  autoComplete?: string;
-};
+const { Title, Text } = Typography;
 
 const RegisterUser: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [formData, setFormData] = useState<FormData>({
-    fullName: "",
-    userName: "",
-    phone: "",
-    address: "",
-    city: "",
-    state: "",
-    pinCode: "",
-    email: "",
-    password: ""
-  });
+  const [form] = Form.useForm();
 
-  const [errors, setErrors] = useState<FormErrors>({});
-
-  const formFields: FormField[] = [
-    { label: "Full Name", name: "fullName", type: "text" },
-    { label: "User Name", name: "userName", type: "text" },
-    { label: "Phone Number", name: "phone", type: "text" },
-    { label: "Address", name: "address", type: "text" },
-    { label: "City", name: "city", type: "text" },
-    { label: "State", name: "state", type: "text" },
-    { label: "Pin Code", name: "pinCode", type: "text" },
-    { label: "Email ID", name: "email", type: "email", autoComplete: "off" },
-    { label: "Password", name: "password", type: "password", autoComplete: "off" },
-  ];
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const name = e.target.name as keyof FormData;  
-    const value = e.target.value;
-
-    setFormData(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: "" }));
-  };
-
-  const validate = (): boolean => {
-    const newErrors: FormErrors = {};
-
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "Name is required.";
-    }
-    if (!formData.userName.trim()) {
-      newErrors.userName = "User Name is required.";
-    }
-
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required.";
-    } else if (!/^\d{10}$/.test(formData.phone)) {
-      newErrors.phone = "Phone number must be 10 digits.";
-    }
-
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required.";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Email format is invalid.";
-    }
-
-    if (!formData.state.trim()) {
-      newErrors.state = "State is required.";
-    }
-    if (!formData.city.trim()) {
-      newErrors.city = "City is required.";
-    }
-    if (!formData.address.trim()) {
-      newErrors.address = "Address is required.";
-    }
-    if (!formData.pinCode.trim()) {
-      newErrors.pinCode = "Pin Code is required.";
-    }else if (!/^\d{6}$/.test(formData.pinCode)) {
-      newErrors.pinCode = "Pin Code must be 6 digits.";
-    }
-
-    if (!formData.password.trim()) {
-      newErrors.password = "Password is required.";
-    }else if (!/^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$/.test(formData.password)) {
-        newErrors.password = "Password should be at least 8 characters, include one digit, one lowercase letter, one uppercase letter, and one special character.";
-    }
-
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  
-  const convertFormDataToRegisterPayload = (formData: FormData): RegisterPayload => {
+  const convertFormDataToRegisterPayload = (formData: any): RegisterPayload => {
     return {
       name: formData.fullName,
       email: formData.email,
@@ -134,57 +25,152 @@ const RegisterUser: React.FC = () => {
       userName: formData.userName,
       city: formData.city,
       state: formData.state,
-      userTypeId: 3, 
+      userTypeId: 3,
     };
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setErrors({});
-    setError(null);
+  const onFinish = async (values: any) => {
     setLoading(true);
-
-    if (validate()) {
-      try {
-        const response = await registerUser(convertFormDataToRegisterPayload(formData));
-        navigate('/login');
-        showNotification.success('User added successfully');
-      } catch (err: any) {
-        setError(err.response?.data || 'Registration failed');
-        showNotification.error(err.response?.data || 'Registration failed');
-      } finally {
-        setLoading(false);
-      }
-    } else {
+    try {
+      const payload = convertFormDataToRegisterPayload(values);
+      await registerUser(payload);
+      showNotification.success('User added successfully');
+      navigate('/login');
+    } catch (err: any) {
+      showNotification.error(err.response?.data || 'Registration failed');
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className={styles.loginContainer}>
-      <form className={styles.loginForm} onSubmit={handleSubmit} noValidate>
-        <h2>Register to login</h2>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#fff7e6', padding: '20px' }}>
+      <Card
+        style={{ width: 800, boxShadow: '0 4px 12px rgba(0,0,0,0.1)', borderColor: '#ffa940' }}
+        title={<Title level={3} style={{ textAlign: 'center', margin: 0, color: '#d46b08' }}>Register</Title>}
+      >
+        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+          <Text type="secondary">Create an account to start ordering delicious pizzas!</Text>
+        </div>
 
-        {error && <p className={styles.error}>{error}</p>}
+        <Form
+          form={form}
+          name="register"
+          onFinish={onFinish}
+          layout="vertical"
+          scrollToFirstError
+        >
+          <Row gutter={16}>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="fullName"
+                label="Full Name"
+                rules={[{ required: true, message: 'Please input your full name!', whitespace: true }]}
+              >
+                <Input prefix={<UserOutlined />} placeholder="Full Name" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="userName"
+                label="User Name"
+                rules={[{ required: true, message: 'Please input a username!', whitespace: true }]}
+              >
+                <Input prefix={<UserOutlined />} placeholder="User Name" />
+              </Form.Item>
+            </Col>
 
-        {formFields.map(({ label, name, type, autoComplete = "on" }) => (
-          <div key={name}>
-            <label>{label}:</label>
-            <input
-              type={type}
-              name={name}
-              value={formData[name]}
-              onChange={handleChange}
-              autoComplete={autoComplete}
-            />
-            {errors[name] && <span style={{ color: "red" }}>{errors[name]}</span>}
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="phone"
+                label="Phone Number"
+                rules={[
+                  { required: true, message: 'Please input your phone number!' },
+                  { pattern: /^\d{10}$/, message: 'Phone number must be 10 digits!' }
+                ]}
+              >
+                <Input prefix={<PhoneOutlined />} placeholder="Phone Number" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={12}>
+              <Form.Item
+                name="email"
+                label="Email"
+                rules={[
+                  { type: 'email', message: 'The input is not valid E-mail!' },
+                  { required: true, message: 'Please input your E-mail!' },
+                ]}
+              >
+                <Input prefix={<MailOutlined />} placeholder="Email" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24}>
+              <Form.Item
+                name="password"
+                label="Password"
+                rules={[
+                  { required: true, message: 'Please input your password!' },
+                  { pattern: /^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\S+$).{8,}$/, message: 'Password must be at least 8 characters, include digit, lowercase, uppercase, and special char.' }
+                ]}
+                hasFeedback
+              >
+                <Input.Password prefix={<LockOutlined />} placeholder="Password" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24}>
+              <Form.Item
+                name="address"
+                label="Address"
+                rules={[{ required: true, message: 'Please input your address!', whitespace: true }]}
+              >
+                <Input.TextArea rows={2} placeholder="Address" />
+              </Form.Item>
+            </Col>
+
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="city"
+                label="City"
+                rules={[{ required: true, message: 'Please input your city!' }]}
+              >
+                <Input prefix={<HomeOutlined />} placeholder="City" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="state"
+                label="State"
+                rules={[{ required: true, message: 'Please input your state!' }]}
+              >
+                <Input prefix={<HomeOutlined />} placeholder="State" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="pinCode"
+                label="Pin Code"
+                rules={[
+                  { required: true, message: 'Please input your pin code!' },
+                  { pattern: /^\d{6}$/, message: 'Pin Code must be 6 digits!' }
+                ]}
+              >
+                <Input prefix={<NumberOutlined />} placeholder="Pin Code" />
+              </Form.Item>
+            </Col>
+          </Row>
+
+          <Form.Item>
+            <Button type="primary" htmlType="submit" block loading={loading} size="large">
+              Register
+            </Button>
+          </Form.Item>
+          <div style={{ textAlign: 'center' }}>
+            <a onClick={() => navigate('/login')}>Already have an account? Login</a>
           </div>
-        ))}
-
-        <button type="submit" disabled={loading}>
-          {loading ? 'Registering ...' : 'Register'}
-        </button>
-      </form>
+        </Form>
+      </Card>
     </div>
   );
 };
