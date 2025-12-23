@@ -4,9 +4,11 @@ import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
 
 import com.springboot.pizzaHouse.model.Item;
 
+@Repository
 public interface ItemRepository extends JpaRepository<Item, Integer> {
 
      // Fetch items with offerItems and their offers eagerly to avoid N+1 problem
